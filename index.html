@@ -11,11 +11,7 @@ body {
   color: #000;
 }
 
-h1 {
-  text-align:center;
-  color:#fff;
-  margin-bottom:20px;
-}
+h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
 #searchInput {
   margin-bottom:10px;
@@ -36,14 +32,11 @@ th, td {
   padding: 6px 10px;
   text-align: left;
   word-break: break-word;
-  white-space: normal;
+  white-space: nowrap;
 }
 
-th {
-  background-color: #f4f4f4;
-}
+th { background-color: #f4f4f4; }
 
-/* 行の背景 */
 #videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
 #videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
 tr:hover { background-color: #b3e5fc; }
@@ -62,58 +55,19 @@ button {
 button:hover { background-color: #2e8b57; }
 
 /* モーダル */
-#modal {
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.5);
-}
-#modalContent {
-  background:#fff;
-  margin:10% auto;
-  padding:20px;
-  width:80%;
-  max-width:500px;
-  border-radius:8px;
-  position: relative;
-}
-#modalClose {
-  position:absolute;
-  top:5px;
-  right:5px;
-  cursor:pointer;
-  font-weight:bold;
-  font-size:24px; /* ここで大きく */
-}
+#modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
+#modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:24px; }
+
+/* 列幅調整 */
+table th:nth-child(1), table td:nth-child(1) { width:20%; }  /* 日付 */
+table th:nth-child(2), table td:nth-child(2) { width:50%; }  /* 曲名 */
+table th:nth-child(3), table td:nth-child(3),
+table th:nth-child(4), table td:nth-child(4) { width:15%; } /* ニコニコ・YouTube */
+table th:nth-child(5), table td:nth-child(5) { width:5%; }  /* 詳細 */
 
 /* YouTube欄スリム化 */
-td.youtube a {
-  display:inline-block;
-  max-width:150px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-
-/* 曲名欄を全体の2/3に */
-table th:nth-child(2),
-table td:nth-child(2) {
-  width: 66.6%;
-  max-width: 66.6%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ニコニコ動画リンクを1行に */
-td.niconico a {
-  display:inline-block;
-  max-width:120px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
+td.youtube a, td.nico a { display:inline-block; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -137,7 +91,7 @@ td.niconico a {
 
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+    <span id="modalClose">&times;</span>
     <div id="modalDetails"></div>
   </div>
 </div>
@@ -152,7 +106,7 @@ fetch('data.json')
     tr.innerHTML = `
       <td>${item["投稿日"]}</td>
       <td>${item["曲名"]}</td>
-      <td class="niconico">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
+      <td class="nico">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
       <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
       <td><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
@@ -165,13 +119,17 @@ fetch('data.json')
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="${item["本家様"]}" target="_blank">${item["本家様"]}</a>`:"－"}</p>
+      <p><strong>本家様:</strong> <a href="${item["本家様"]}" target="_blank">${item["本家様"]}</a></p>
       <p><strong>本家様製作者:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
     `;
     document.getElementById('modal').style.display='block';
   }
+
+  const modal = document.getElementById('modal');
+  document.getElementById('modalClose').onclick = ()=> modal.style.display='none';
+  window.onclick = (e)=> { if(e.target==modal) modal.style.display='none'; }
 
   // 検索（曲名、ニコニコ、YouTube、歌唱者）
   document.getElementById('searchInput').addEventListener('input',function(){
@@ -181,14 +139,6 @@ fetch('data.json')
       row.style.display = text.includes(filter) ? '' : 'none';
     });
   });
-
-  // モーダル外クリックで閉じる
-  window.onclick = function(event) {
-    const modal = document.getElementById('modal');
-    if(event.target == modal) {
-      modal.style.display = "none";
-    }
-  }
 
 });
 </script>
