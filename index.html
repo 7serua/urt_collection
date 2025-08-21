@@ -152,9 +152,9 @@ fetch('data.json')
     <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
 
     <p><strong>本家様:</strong> ${
-      item["本家様"] !== "－"
+      item["本家様"] !== "－" && item["本家様"] !== "オリジナル曲"
         ? `<a href="${item["本家様"].trim()}" target="_blank">${item["本家様"]}</a>`
-        : "－"
+        : item["本家様"]
     }</p>
 
     <p><strong>ニコニコ:</strong> ${
