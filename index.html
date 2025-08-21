@@ -95,6 +95,15 @@ button:hover { background-color:#2e8b57; }
   table, th, td { font-size:14px; }
 }
 
+a:link, a:visited {
+  color: #007bff; /* 通常リンクは青 */
+}
+
+a[href]:not([href^="http"]) {
+  color: inherit; /* hrefが正しくない場合は文字色を引き継ぐ */
+}
+
+
 td.nico,
 td.youtube,
 td.detail {
