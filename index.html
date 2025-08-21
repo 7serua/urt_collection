@@ -32,9 +32,9 @@ table {
 th, td {
   border: 1px solid #ccc;
   padding: 6px 10px;
-  text-align: left;
+  text-align: center;
   word-break: break-word;
-  vertical-align: middle; /* セル内文字を中央寄せ */
+  vertical-align: middle; 
 }
 
 th { background-color: #f4f4f4; }
@@ -49,7 +49,7 @@ a { color: #007bff; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 button {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border: none;
   background-color: #38b48b;
   color: #fff;
@@ -61,7 +61,7 @@ button:hover { background-color: #2e8b57; }
 /* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
 #modalContent { background:#fff; margin:10% auto; padding:20px; width:90%; max-width:500px; border-radius:8px; position: relative; }
-#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:28px; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:36px; }
 
 td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflow:hidden; text-overflow:ellipsis; }
 
@@ -75,11 +75,11 @@ td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflo
 <table id="videoTable">
   <thead>
     <tr>
-      <th style="width:12%; text-align:center;">投稿日</th>
+      <th style="width:12%;">投稿日</th>
       <th class="song">曲名</th>
       <th style="width:18%;">ニコニコ動画</th>
       <th style="width:18%;">YouTube</th>
-      <th style="width:12%; text-align:center;">詳細</th>
+      <th style="width:12%;">詳細</th>
       <th style="display:none;">歌唱者検索用</th>
     </tr>
   </thead>
@@ -99,16 +99,20 @@ fetch('data.json')
 .then(data => {
   const tbody = document.querySelector('#videoTable tbody');
   data.forEach((item,index)=>{
-    const honkeText = item["本家様"] === "オリジナル曲" ? "オリジナル曲" : item["本家様"];
-    const coverText = item["本家様"] === "オリジナル曲" ? "オリジナル曲" : "カバー曲";
+    // 検索用のtype属性に複数キーワードを入れる
+    let types = [];
+    types.push(item["本家様"] === "オリジナル曲" ? "オリジナル曲" : "カバー曲");
+    if(item["備考"].includes("替え歌")) types.push("替え歌");
+    if(item["備考"].includes("声真似")) types.push("声真似");
+
     const tr = document.createElement('tr');
-    tr.dataset.type = coverText; // 検索用属性
+    tr.dataset.type = types.join(" ");
     tr.innerHTML = `
-      <td style="white-space:nowrap; text-align:center;">${item["投稿日"]}</td>
+      <td style="white-space:nowrap;">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
       <td class="nicovideo">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
       <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
-      <td style="text-align:center;"><button onclick="showDetails(${index})">詳細</button></td>
+      <td><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
     `;
     tbody.appendChild(tr);
