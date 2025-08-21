@@ -13,19 +13,35 @@ body {
 
 h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
-#searchInput {
+#searchContainer {
   margin-bottom:10px;
+  display:flex;
+  gap:5px;
+  align-items:center;
+}
+
+#searchInput {
   padding:5px;
   width:250px;
   border:1px solid #ccc;
   border-radius:4px;
 }
 
+#clearButton {
+  padding:5px 10px;
+  border:none;
+  background-color:#f08080;
+  color:#fff;
+  border-radius:4px;
+  cursor:pointer;
+}
+#clearButton:hover { background-color:#e06060; }
+
 table {
   border-collapse: collapse;
   width: 80%;
   margin: 0 auto;
-  table-layout: auto; /* ⬅ 日付セルが文字幅に合わせて広がる */
+  table-layout: auto;
   background-color: #fff;
 }
 
@@ -70,7 +86,11 @@ td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflo
 <body>
 
 <h1>動画リスト</h1>
-<input id="searchInput" placeholder="検索...">
+
+<div id="searchContainer">
+  <input id="searchInput" placeholder="検索...">
+  <button id="clearButton">検索解除</button>
+</div>
 
 <table id="videoTable">
   <thead>
@@ -102,30 +122,28 @@ fetch('data.json')
   data.forEach((item,index)=>{
     let tags = [];
 
-    // 本家様が「オリジナル曲」
     if(item["本家様"] === "オリジナル曲"){
       tags.push("オリジナル曲");
     } else {
       tags.push("カバー曲");
     }
 
-    // 備考から追加タグ
     if(item["備考"].includes("替え歌")){
       tags.push("替え歌");
-      tags = tags.filter(t => t !== "カバー曲"); // カバー曲から除外
+      tags = tags.filter(t => t !== "カバー曲");
     }
     if(item["備考"].includes("声真似")){
       tags.push("声真似");
-      tags = tags.filter(t => t !== "カバー曲"); // カバー曲から除外
+      tags = tags.filter(t => t !== "カバー曲");
     }
 
-    // 歌唱者に「・」が含まれる場合はコラボ曲
     if(item["出演者"].includes("・")){
       tags.push("コラボ曲");
     }
 
     const tr = document.createElement('tr');
     tr.dataset.type = tags.join(" ");
+    tr.dataset.singer = item["出演者"].toLowerCase(); // 歌唱者検索用
     tr.innerHTML = `
       <td class="date">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
@@ -157,14 +175,23 @@ fetch('data.json')
   window.onclick = event => { if(event.target === modal){ modal.style.display='none'; } }
 
   // 検索処理
-  document.getElementById('searchInput').addEventListener('input',function(){
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
       const text = row.textContent.toLowerCase();
       const type = row.dataset.type.toLowerCase();
-      row.style.display = (text.includes(filter) || type.includes(filter)) ? '' : 'none';
+      const singer = row.dataset.singer.toLowerCase();
+      row.style.display = (text.includes(filter) || type.includes(filter) || singer.includes(filter)) ? '' : 'none';
     });
   });
+
+  // 検索解除ボタン
+  document.getElementById('clearButton').onclick = () => {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+  };
+
 });
 </script>
 </body>
