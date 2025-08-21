@@ -33,8 +33,6 @@ th, td {
   text-align: left;
   word-break: break-word;
   white-space: normal;
-  max-width: 200px;
-  overflow-wrap: anywhere;
 }
 th { background-color: #f4f4f4; }
 #videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
@@ -75,11 +73,18 @@ button:hover { background-color: #2e8b57; }
   cursor:pointer;
   font-weight:bold;
 }
+
+/* 非表示セル（出演者検索用） */
+.hidden-performers { display:none; }
+/* YouTubeセルの幅制限 */
+.youtube-link { max-width:180px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
+
 <h1>動画リスト</h1>
-<input type="text" id="searchInput" placeholder="検索...">
+<input type="text" id="searchInput" placeholder="検索">
+
 <table id="videoTable">
   <thead>
     <tr>
@@ -88,6 +93,7 @@ button:hover { background-color: #2e8b57; }
       <th>ニコニコ</th>
       <th>YouTube</th>
       <th>詳細</th>
+      <th class="hidden-performers">出演者(非表示)</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -95,93 +101,93 @@ button:hover { background-color: #2e8b57; }
 
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">✖</span>
+    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">×</span>
     <div id="modalDetails"></div>
   </div>
 </div>
 <script>
-// data.json を読み込む
 fetch('data.json')
-  .then(res => res.json())
-  .then(data => {
-    const tbody = document.querySelector('#videoTable tbody');
-
-    data.forEach((item, index) => {
-      const tr = document.createElement('tr');
-
-      // 出演者を非表示セルとして検索対象にする
-      const hiddenPerformers = item["出演者"].split('・').join(' ');
-<tr>
-  ...
-  <td class="hidden-performers" style="display:none;">${hiddenPerformers}</td>
-</tr>
-
-      // YouTubeリンク整形（不可視文字除去）
-      const youtubeURL = item["YouTube"].replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
-<td>${
-  youtubeURL !== "－"
-    ? `<a href="${youtubeURL.startsWith('http') ? youtubeURL : 'https://' + youtubeURL}" target="_blank">${youtubeURL}</a>`
-    : "－"
-}
-</td>
-
-      tr.innerHTML = `
-        <td>${item["投稿日"]}</td>
-        <td>${item["曲名"]}</td>
-        <td>${
-          item["ニコニコ"] !== "－"
-            ? `<a href="${item["ニコニコ"].trim()}" target="_blank">${item["ニコニコ"]}</a>`
-            : "－"
-        }</td>
-        <td>${
-          youtubeURL !== "－"
-            ? `<a href="${youtubeURL.startsWith('http') ? youtubeURL : 'https://' + youtubeURL}" target="_blank">${youtubeURL}</a>`
-            : "－"
-        }</td>
-        <td><button onclick="showDetails(${index})">詳細</button></td>
-        <td class="hidden-performers" style="display:none;">${hiddenPerformers}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    // モーダル表示関数（出演者は非表示）
-    window.showDetails = function(index) {
-      const item = data[index];
-      document.getElementById('modalDetails').innerHTML = `
-        <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-        <p><strong>本家様:</strong> ${
-          item["本家様"] !== "－" && item["本家様"] !== "オリジナル曲"
-            ? `<a href="${item["本家様"].trim()}" target="_blank">${item["本家様"]}</a>`
-            : item["本家様"]
-        }</p>
-        <p><strong>ニコニコ:</strong> ${
-          item["ニコニコ"] !== "－"
-            ? `<a href="${item["ニコニコ"].trim()}" target="_blank">${item["ニコニコ"]}</a>`
-            : "－"
-        }</p>
-        <p><strong>YouTube:</strong> ${
-          item["YouTube"] !== "－"
-            ? `<a href="${item["YouTube"].startsWith('http') ? item["YouTube"].trim() : 'https://' + item["YouTube"].trim()}" target="_blank">${item["YouTube"]}</a>`
-            : "－"
-        }</p>
-        <p><strong>本家様:</strong> ${
-  item["本家様"] !== "－" && item["本家様"] !== "オリジナル曲"
-    ? `<a href="${item["本家様"].trim()}" target="_blank">${item["本家様"]}</a>`
-    : item["本家様"]
-}</p>
-        <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
-        <p><strong>備考:</strong> ${item["備考"]}</p>
-      `;
-      document.getElementById('modal').style.display = 'block';
-    };
-
-    // 検索機能（出演者も非表示セルで検索可能）
-    document.getElementById('searchInput').addEventListener('input', function() {
-  const filter = this.value.toLowerCase();
-  const rows = document.querySelectorAll('#videoTable tbody tr');
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(filter) ? '' : 'none';
+.then(res => res.json())
+.then(data => {
+  const tbody = document.querySelector('#videoTable tbody');
+  data.forEach((item,index)=>{
+    const tr = document.createElement('tr');
+    // 出演者非表示セル（検索用）
+    const hiddenPerformers = item["出演者"] ? item["出演者"].split('・').join(' ') : '';
+    // ニコニコリンク
+    const nicoLink = item["ニコニコ"]!=="－"?`<a href="${item["ニコニコ"]}" target="_blank">${item["ニコニコ"]}</a>`:"－";
+    // YouTubeリンク
+    let ytLink = "－";
+    if(item["YouTube"] && item["YouTube"]!=="－") {
+      let url = item["YouTube"].replace(/[\u200B-\u200D\uFEFF]/g,'').trim();
+      if(!url.startsWith('http')) url='https://'+url;
+      ytLink=`<a href="${url}" target="_blank" class="youtube-link">${url}</a>`;
+    }
+    tr.innerHTML = `
+      <td>${item["投稿日"]}</td>
+      <td>${item["曲名"]}</td>
+      <td>${nicoLink}</td>
+      <td>${ytLink}</td>
+      <td><button onclick="showDetails(${index})">詳細</button></td>
+      <td class="hidden-performers">${hiddenPerformers}</td>
+    `;
+    tbody.appendChild(tr);
   });
-});
+
+  window.showDetails=function(index){
+    const item = data[index];
+    // 本家様はオリジナル曲や－はリンク化しない
+    let honke = item["本家様"];
+    if(honke!=="－" && honke!=="オリジナル曲") honke=`<a href="${honke.trim()}" target="_blank">${honke}</a>`;
+    document.getElementById('modalDetails').innerHTML=`
+      <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
+      <p><strong>本家様:</strong> ${honke}</p>
+      <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
+      <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
+      <p><strong>備考:</strong> ${item["備考"]}</p>
+    `;
+    document.getElementById('modal').style.display='block';
+  }
+  <script>
+fetch('data.json')
+.then(res => res.json())
+.then(data => {
+  const tbody = document.querySelector('#videoTable tbody');
+  data.forEach((item,index)=>{
+    const tr = document.createElement('tr');
+    // 出演者非表示セル（検索用）
+    const hiddenPerformers = item["出演者"] ? item["出演者"].split('・').join(' ') : '';
+    // ニコニコリンク
+    const nicoLink = item["ニコニコ"]!=="－"?`<a href="${item["ニコニコ"]}" target="_blank">${item["ニコニコ"]}</a>`:"－";
+    // YouTubeリンク
+    let ytLink = "－";
+    if(item["YouTube"] && item["YouTube"]!=="－") {
+      let url = item["YouTube"].replace(/[\u200B-\u200D\uFEFF]/g,'').trim();
+      if(!url.startsWith('http')) url='https://'+url;
+      ytLink=`<a href="${url}" target="_blank" class="youtube-link">${url}</a>`;
+    }
+    tr.innerHTML = `
+      <td>${item["投稿日"]}</td>
+      <td>${item["曲名"]}</td>
+      <td>${nicoLink}</td>
+      <td>${ytLink}</td>
+      <td><button onclick="showDetails(${index})">詳細</button></td>
+      <td class="hidden-performers">${hiddenPerformers}</td>
+    `;
+    tbody.appendChild(tr);
   });
-</script>
+
+  window.showDetails=function(index){
+    const item = data[index];
+    // 本家様はオリジナル曲や－はリンク化しない
+    let honke = item["本家様"];
+    if(honke!=="－" && honke!=="オリジナル曲") honke=`<a href="${honke.trim()}" target="_blank">${honke}</a>`;
+    document.getElementById('modalDetails').innerHTML=`
+      <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
+      <p><strong>本家様:</strong> ${honke}</p>
+      <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
+      <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
+      <p><strong>備考:</strong> ${item["備考"]}</p>
+    `;
+    document.getElementById('modal').style.display='block';
+  }
