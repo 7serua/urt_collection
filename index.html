@@ -124,11 +124,17 @@ fetch('data.json')
     const tbody = document.querySelector('#videoTable tbody');
     data.forEach((item, index) => {
       const tr = document.createElement('tr');
+
+      // 出演者を「・」で分割してタグにする
+      const performers = item["出演者"].split('・');
+      const tagsHTML = performers.map(name => `<span class="tag">${name}</span>`).join(' ');
+
       tr.innerHTML = `
         <td>${item["投稿日"]}</td>
         <td>${item["曲名"]}</td>
         <td>${item["ニコニコ"] !== "－" ? `<a href="${item["ニコニコ"]}" target="_blank">${item["ニコニコ"]}</a>` : "－"}</td>
         <td>${item["YouTube"]}</td>
+        <td>${tagsHTML}</td> <!-- タグ化した出演者を表示 -->
         <td><button onclick="showDetails(${index})">詳細</button></td>
       `;
       tbody.appendChild(tr);
@@ -147,6 +153,7 @@ fetch('data.json')
       document.getElementById('modal').style.display = 'block';
     }
   });
+</script>
 
 // 検索機能（トップページのみ対象）
 document.getElementById('searchInput').addEventListener('input', function() {
