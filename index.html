@@ -145,25 +145,24 @@ fetch('data.json')
     window.showDetails = function(index) {
       const item = data[index];
       document.getElementById('modalDetails').innerHTML = `
-        <p><strong>出演者:</strong> ${item["出演者"]}</p>
-        <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-        <p><strong>本家様:</strong> ${item["本家様"] !== "－" ? `<a href="${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : "－"}</p>
-        <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
-        <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
-        <p><strong>備考:</strong> ${item["備考"]}</p>
-      `;
+  <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
+  <p><strong>本家様:</strong> ${item["本家様"] !== "－" ? `<a href="${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : "－"}</p>
+  <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
+  <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
+  <p><strong>備考:</strong> ${item["備考"]}</p>
+`;
       document.getElementById('modal').style.display = 'block';
     }
   });
 </script>
 
 // 検索機能（トップページのみ対象）
-document.getElementById('searchInput').addEventListener('input', function() {
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', function() {
   const filter = this.value.toLowerCase();
   const rows = document.querySelectorAll('#videoTable tbody tr');
   rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(filter) ? '' : 'none';
+    row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
   });
 });
 </script>
