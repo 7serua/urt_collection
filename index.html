@@ -5,13 +5,13 @@
 <title>動画リスト</title>
 <style>
 body {
-  background: linear-gradient(to bottom, #a8f5c0, #6fd6a3, #ccf5ff);
+  background: linear-gradient(to bottom, #a0f0c8, #38b48b, #ccffe5);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
 }
 
-h1 { text-align:center; color:#333; margin-bottom:20px; }
+h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
 #searchInput {
   margin-bottom:10px;
@@ -96,11 +96,13 @@ fetch('data.json')
   const tbody = document.querySelector('#videoTable tbody');
   data.forEach((item,index)=>{
     const tr = document.createElement('tr');
+
+    // メインページ用リンク
     const nicoLink = item["ニコニコ"] !== "－" ? 
-      `<a href="https://${item["ニコニコ"]}" target="_blank">ニコニコで再生</a>` : "－";
+      `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>` : "－";
     const ytLink = item["YouTube"] !== "－" ? 
-      `<a href="${item["YouTube"]}" target="_blank">YouTubeで再生</a>` : "－";
-    
+      `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>` : "－";
+
     tr.innerHTML = `
       <td>${item["投稿日"]}</td>
       <td>${item["曲名"]}</td>
@@ -114,10 +116,17 @@ fetch('data.json')
 
   window.showDetails = function(index){
     const item = data[index];
+    let originalLinks = '';
+    if(item["本家様"] && item["本家様"] !== "オリジナル曲") {
+      originalLinks = `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
+    } else {
+      originalLinks = item["本家様"];
+    }
+
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>出演者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]}</p>
+      <p><strong>本家様:</strong> ${originalLinks}</p>
       <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
@@ -125,7 +134,7 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  // 検索（曲名、ニコニコ、YouTube、出演者）
+  // 検索機能
   document.getElementById('searchInput').addEventListener('input',function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
@@ -136,6 +145,5 @@ fetch('data.json')
 
 });
 </script>
-
 </body>
 </html>
