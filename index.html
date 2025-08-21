@@ -9,8 +9,10 @@ body {
   padding: 20px;
   color: #000;
   margin:0;
-  /* 背景グラデーション細かく、最後の色は行と被らない */
+  /* 背景グラデーション 繰り返さない */
   background: linear-gradient(to bottom, #7ee0a5 0%, #38b48b 30%, #55c69b 60%, #ccffe5 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 h1 { text-align:center; color:#fff; margin-bottom:20px; }
@@ -126,7 +128,6 @@ fetch('data.json')
 
   data.forEach((item,index)=>{
     let tags = [];
-    // 本家様の検索タグ
     if(item["本家様"] === "オリジナル曲"){
       tags.push("オリジナル曲");
     } else if(item["本家様"] === "不明" || item["本家様"] === "?"){
@@ -166,11 +167,15 @@ fetch('data.json')
   window.showDetails = function(index){
     const item = data[index];
     let honkeText;
+    // YouTubeの場合も含めてリンク化
     if(item["本家様"] === "オリジナル曲" || item["本家様"] === "不明" || item["本家様"] === "?"){
       honkeText = item["本家様"];
+    } else if(item["本家様"].startsWith("https://") || item["本家様"].startsWith("http://")){
+      honkeText = `<a href="${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
     } else {
       honkeText = `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
     }
+
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
@@ -185,7 +190,6 @@ fetch('data.json')
   const modal = document.getElementById('modal');
   const modalClose = document.getElementById('modalClose');
   modalClose.onclick = () => modal.style.display='none';
-
   window.onclick = event => { 
     if(event.target === modal){ modal.style.display='none'; } 
   }
@@ -195,7 +199,6 @@ fetch('data.json')
 
   searchInput.addEventListener('input', function(){
     const filter = this.value.toLowerCase();
-    let anyVisible = false;
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
       const text = row.textContent.toLowerCase();
       const type = row.dataset.type.toLowerCase();
@@ -203,10 +206,7 @@ fetch('data.json')
       const honkeMaker = row.dataset.honkeMaker.toLowerCase();
       const show = (text.includes(filter) || type.includes(filter) || singer.includes(filter) || honkeMaker.includes(filter));
       row.style.display = show ? '' : 'none';
-      if(show) anyVisible = true;
     });
-    // 背景繰り返し防止
-    document.body.style.backgroundRepeat = anyVisible ? "no-repeat" : "repeat";
   });
 
   clearButton.onclick = () => { searchInput.value=''; searchInput.dispatchEvent(new Event('input')); };
