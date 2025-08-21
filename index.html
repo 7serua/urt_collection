@@ -39,6 +39,7 @@ th { background-color: #f4f4f4; }
 
 #videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
 #videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
+
 tr:hover { background-color: #b3e5fc; }
 
 a { color: #007bff; text-decoration: none; }
@@ -59,8 +60,11 @@ button:hover { background-color: #2e8b57; }
 #modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
 #modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:24px; }
 
-/* YouTube/ニコニコ欄スリム化 */
-td.youtube a, td.nico a { display:inline-block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* YouTube欄スリム化 */
+td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ニコニコ/YouTubeボタン1行に */
+td a.btn { display:inline-block; margin-right:5px; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -72,11 +76,11 @@ td.youtube a, td.nico a { display:inline-block; max-width:180px; overflow:hidden
   <thead>
     <tr>
       <th>投稿日</th>
-      <th>曲名</th>
+      <th style="width:200px;">曲名</th>
       <th>ニコニコ動画</th>
       <th>YouTube</th>
       <th>詳細</th>
-      <th style="display:none;">出演者検索用</th>
+      <th style="display:none;">歌唱者検索用</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -84,7 +88,7 @@ td.youtube a, td.nico a { display:inline-block; max-width:180px; overflow:hidden
 
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose">&times;</span>
+    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
     <div id="modalDetails"></div>
   </div>
 </div>
@@ -99,8 +103,8 @@ fetch('data.json')
     tr.innerHTML = `
       <td>${item["投稿日"]}</td>
       <td>${item["曲名"]}</td>
-      <td class="nico">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
-      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
+      <td><a class="btn" href="${item["ニコニコ"]!=="－"? "https://"+item["ニコニコ"]:"#"}" target="_blank">▶ニコニコ動画</a></td>
+      <td class="youtube">${item["YouTube"]!=="－"?`<a class="btn" href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
       <td><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
     `;
@@ -110,9 +114,9 @@ fetch('data.json')
   window.showDetails = function(index){
     const item = data[index];
     document.getElementById('modalDetails').innerHTML = `
-      <p><strong>出演者:</strong> ${item["出演者"]}</p>
+      <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]}</p>
+      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"? `<a href="${item["本家様"]}" target="_blank">リンク</a>`:"－"}</p>
       <p><strong>本家様製作者:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
@@ -120,13 +124,14 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  const modal = document.getElementById('modal');
-  const modalClose = document.getElementById('modalClose');
+  // モーダル外クリックで閉じる
+  window.onclick = function(event){
+    if(event.target == document.getElementById('modal')){
+      document.getElementById('modal').style.display='none';
+    }
+  }
 
-  modalClose.onclick = () => { modal.style.display='none'; }
-  modal.onclick = (e) => { if(e.target===modal) modal.style.display='none'; }
-
-  // 検索（曲名、ニコニコ、YouTube、出演者）
+  // 検索（曲名、ニコニコ、YouTube、歌唱者）
   document.getElementById('searchInput').addEventListener('input',function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
