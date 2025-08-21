@@ -14,15 +14,16 @@ body {
 h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
 #searchContainer {
-  margin-bottom:10px;
+  margin: 0 auto 10px auto; /* 中央寄せ＋下マージン */
   display:flex;
   gap:5px;
   align-items:center;
+  width: 80%; /* 表と同じ幅 */
 }
 
 #searchInput {
   padding:5px;
-  width:250px;
+  flex:1;
   border:1px solid #ccc;
   border-radius:4px;
 }
@@ -30,12 +31,12 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
 #clearButton {
   padding:5px 10px;
   border:none;
-  background-color:#f08080;
+  background-color:#38b48b; /* 緑色 */
   color:#fff;
   border-radius:4px;
   cursor:pointer;
 }
-#clearButton:hover { background-color:#e06060; }
+#clearButton:hover { background-color:#2e8b57; }
 
 table {
   border-collapse: collapse;
