@@ -191,3 +191,17 @@ fetch('data.json')
     `;
     document.getElementById('modal').style.display='block';
   }
+// 検索機能
+  document.getElementById('searchInput').addEventListener('input',function(){
+    const filter=this.value.toLowerCase();
+    const rows=document.querySelectorAll('#videoTable tbody tr');
+    rows.forEach(row=>{
+      const text=(row.textContent).toLowerCase();
+      row.style.display=text.includes(filter)?'':'none';
+    });
+  });
+
+});
+</script>
+</body>
+</html>
