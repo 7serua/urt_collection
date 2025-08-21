@@ -4,70 +4,12 @@
 <meta charset="UTF-8">
 <title>動画リスト</title>
 <style>
-body {
-  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  color: #000;
-}
-
-h1 { text-align:center; color:#fff; margin-bottom:20px; }
-
-#searchInput {
-  margin-bottom:10px;
-  padding:5px;
-  width:250px;
-  border:1px solid #ccc;
-  border-radius:4px;
-}
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-  background-color: #fff;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px 10px;
-  text-align: left;
-  word-break: break-word;
-  white-space: normal;
-}
-
-th { background-color: #f4f4f4; }
-
-#videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
-#videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
-tr:hover { background-color: #b3e5fc; }
-
-a { color: #007bff; text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-button {
-  padding: 4px 8px;
-  border: none;
-  background-color: #38b48b;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-}
-button:hover { background-color: #2e8b57; }
-
-/* モーダル */
-#modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
-#modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
-#modalClose { position:absolute; top:10px; right:10px; cursor:pointer; font-weight:bold; }
-
-/* YouTube欄スリム化 */
-td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 5px; }
 </style>
 </head>
 <body>
-
 <h1>動画リスト</h1>
-<input id="searchInput" placeholder="検索...">
-
 <table id="videoTable">
   <thead>
     <tr>
@@ -75,61 +17,31 @@ td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-over
       <th>曲名</th>
       <th>ニコニコ</th>
       <th>YouTube</th>
-      <th>詳細</th>
-      <th style="display:none;">出演者検索用</th>
+      <th>出演者</th>
+      <th>今見れる？</th>
     </tr>
   </thead>
   <tbody></tbody>
 </table>
 
-<div id="modal">
-  <div id="modalContent">
-    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
-    <div id="modalDetails"></div>
-  </div>
-</div>
-
 <script>
 fetch('data.json')
-.then(res => res.json())
-.then(data => {
-  const tbody = document.querySelector('#videoTable tbody');
-  data.forEach((item,index)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${item["投稿日"]}</td>
-      <td>${item["曲名"]}</td>
-      <td>${item["ニコニコ"]!=="－"?`<a href="${item["ニコニコ"]}" target="_blank">リンク</a>`:"－"}</td>
-      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">リンク</a>`:"－"}</td>
-      <td><button onclick="showDetails(${index})">詳細</button></td>
-      <td style="display:none;">${item["出演者"]}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  window.showDetails = function(index){
-    const item = data[index];
-    document.getElementById('modalDetails').innerHTML = `
-      <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="${item["本家様"]}" target="_blank">リンク</a>`:"－"}</p>
-      <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
-      <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
-      <p><strong>備考:</strong> ${item["備考"]}</p>
-    `;
-    document.getElementById('modal').style.display='block';
-  }
-
-  // 検索（曲名、ニコニコ、YouTube、出演者）
-  document.getElementById('searchInput').addEventListener('input',function(){
-    const filter = this.value.toLowerCase();
-    document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(filter) ? '' : 'none';
+  .then(response => response.json())
+  .then(data => {
+    const tbody = document.querySelector('#videoTable tbody');
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item['投稿日']}</td>
+        <td>${item['曲名']}</td>
+        <td><a href="${item['ニコニコ']}" target="_blank">${item['ニコニコ']}</a></td>
+        <td><a href="${item['YouTube']}" target="_blank">${item['YouTube']}</a></td>
+        <td>${item['出演者']}</td>
+        <td>${item['今見れる？']}</td>
+      `;
+      tbody.appendChild(row);
     });
   });
-
-});
 </script>
 </body>
 </html>
-
