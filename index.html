@@ -25,7 +25,7 @@ table {
   border-collapse: collapse;
   width: 80%;
   margin: 0 auto;
-  table-layout: fixed;
+  table-layout: auto; /* ⬅ 日付セルが文字幅に合わせて広がる */
   background-color: #fff;
 }
 
@@ -75,12 +75,12 @@ td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflo
 <table id="videoTable">
   <thead>
     <tr>
-      <th style="width:12%;">投稿日</th>
+      <th>投稿日</th>
       <th class="song">曲名</th>
-      <th style="width:18%;">ニコニコ動画</th>
-      <th style="width:18%;">YouTube</th>
-      <th style="width:12%;">詳細</th>
-      <th style="display:none;">歌唱者検索用</th>
+      <th>ニコニコ動画</th>
+      <th>YouTube</th>
+      <th>詳細</th>
+      <th style="display:none;">検索用タグ</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -98,21 +98,41 @@ fetch('data.json')
 .then(res => res.json())
 .then(data => {
   const tbody = document.querySelector('#videoTable tbody');
+
   data.forEach((item,index)=>{
-    // 備考に「替え歌」や「声真似」があればtype属性に追加、それ以外は空に
-    let types = [];
-    if(item["備考"].includes("替え歌")) types.push("替え歌");
-    if(item["備考"].includes("声真似")) types.push("声真似");
+    let tags = [];
+
+    // 本家様が「オリジナル曲」
+    if(item["本家様"] === "オリジナル曲"){
+      tags.push("オリジナル曲");
+    } else {
+      tags.push("カバー曲");
+    }
+
+    // 備考から追加タグ
+    if(item["備考"].includes("替え歌")){
+      tags.push("替え歌");
+      tags = tags.filter(t => t !== "カバー曲"); // カバー曲から除外
+    }
+    if(item["備考"].includes("声真似")){
+      tags.push("声真似");
+      tags = tags.filter(t => t !== "カバー曲"); // カバー曲から除外
+    }
+
+    // 歌唱者に「・」が含まれる場合はコラボ曲
+    if(item["出演者"].includes("・")){
+      tags.push("コラボ曲");
+    }
 
     const tr = document.createElement('tr');
-    tr.dataset.type = types.join(" ");
+    tr.dataset.type = tags.join(" ");
     tr.innerHTML = `
       <td class="date">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
       <td class="nicovideo">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
       <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
       <td><button onclick="showDetails(${index})">詳細</button></td>
-      <td style="display:none;">${item["出演者"]}</td>
+      <td style="display:none;">${tags.join(" ")}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -134,10 +154,9 @@ fetch('data.json')
   const modal = document.getElementById('modal');
   const modalClose = document.getElementById('modalClose');
   modalClose.onclick = () => modal.style.display='none';
-  // モバイル・外クリックでも閉じる
   window.onclick = event => { if(event.target === modal){ modal.style.display='none'; } }
 
-  // 検索
+  // 検索処理
   document.getElementById('searchInput').addEventListener('input',function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
