@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>動画リスト</title>
+<style>
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 5px; }
+</style>
+</head>
+<body>
+<h1>動画リスト</h1>
+<table id="videoTable">
+  <thead>
+    <tr>
+      <th>投稿日</th>
+      <th>曲名</th>
+      <th>ニコニコ</th>
+      <th>YouTube</th>
+      <th>出演者</th>
+      <th>今見れる？</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+fetch('data.json')
+  .then(response => response.json())
+  .then(data => {
+    const tbody = document.querySelector('#videoTable tbody');
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item['投稿日']}</td>
+        <td>${item['曲名']}</td>
+        <td><a href="${item['ニコニコ']}" target="_blank">${item['ニコニコ']}</a></td>
+        <td><a href="${item['YouTube']}" target="_blank">${item['YouTube']}</a></td>
+        <td>${item['出演者']}</td>
+        <td>${item['今見れる？']}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  });
+</script>
+</body>
+</html>
