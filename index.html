@@ -9,7 +9,7 @@ body {
   padding: 20px;
   color: #000;
   margin:0;
-  /* グラデーションを細かくして最後の色を行の色と被らないように */
+  /* 背景グラデーション細かく、最後の色は行と被らない */
   background: linear-gradient(to bottom, #7ee0a5 0%, #38b48b 30%, #55c69b 60%, #ccffe5 100%);
 }
 
@@ -21,7 +21,6 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
   align-items:center;
   width:400px;
   margin-bottom:10px;
-  /* 表の左端に合わせる */
   margin-left:auto;
   margin-right:auto;
 }
@@ -65,7 +64,7 @@ th { background-color: #f4f4f4; }
 tr:hover { background-color: #b3e5fc; }
 
 td.song { width:35%; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
-td.date { text-align:left; white-space:nowrap; }
+td.date { text-align:center; padding-left:10px; padding-right:10px; white-space:nowrap; }
 
 a { color: #007bff; text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -74,11 +73,11 @@ button {
   padding: 6px 10px;
   border: none;
   background-color: #38b48b;
-  color: #fff;
+  color:#fff;
   border-radius: 4px;
-  cursor: pointer;
+  cursor:pointer;
 }
-button:hover { background-color: #2e8b57; }
+button:hover { background-color:#2e8b57; }
 
 /* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
@@ -127,7 +126,7 @@ fetch('data.json')
 
   data.forEach((item,index)=>{
     let tags = [];
-    // 本家様がオリジナル曲の場合
+    // 本家様の検索タグ
     if(item["本家様"] === "オリジナル曲"){
       tags.push("オリジナル曲");
     } else if(item["本家様"] === "不明" || item["本家様"] === "?"){
@@ -135,6 +134,7 @@ fetch('data.json')
     } else {
       tags.push("カバー曲");
     }
+
     if(item["備考"].includes("替え歌")){
       tags.push("替え歌");
       tags = tags.filter(t => t !== "カバー曲");
@@ -151,6 +151,7 @@ fetch('data.json')
     tr.dataset.type = tags.join(" ");
     tr.dataset.singer = item["出演者"].toLowerCase();
     tr.dataset.honkeMaker = item["本家制作"].toLowerCase();
+
     tr.innerHTML = `
       <td class="date">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
@@ -164,7 +165,12 @@ fetch('data.json')
 
   window.showDetails = function(index){
     const item = data[index];
-    const honkeText = (item["本家様"] === "オリジナル曲" || item["本家様"] === "不明" || item["本家様"] === "?") ? item["本家様"] : `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
+    let honkeText;
+    if(item["本家様"] === "オリジナル曲" || item["本家様"] === "不明" || item["本家様"] === "?"){
+      honkeText = item["本家様"];
+    } else {
+      honkeText = `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
+    }
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
@@ -179,22 +185,30 @@ fetch('data.json')
   const modal = document.getElementById('modal');
   const modalClose = document.getElementById('modalClose');
   modalClose.onclick = () => modal.style.display='none';
-  // モバイルでも外クリックで閉じる
-  window.onclick = event => { if(event.target === modal){ modal.style.display='none'; } }
+
+  window.onclick = event => { 
+    if(event.target === modal){ modal.style.display='none'; } 
+  }
 
   const searchInput = document.getElementById('searchInput');
+  const clearButton = document.getElementById('clearButton');
+
   searchInput.addEventListener('input', function(){
     const filter = this.value.toLowerCase();
+    let anyVisible = false;
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
       const text = row.textContent.toLowerCase();
       const type = row.dataset.type.toLowerCase();
       const singer = row.dataset.singer.toLowerCase();
       const honkeMaker = row.dataset.honkeMaker.toLowerCase();
-      row.style.display = (text.includes(filter) || type.includes(filter) || singer.includes(filter) || honkeMaker.includes(filter)) ? '' : 'none';
+      const show = (text.includes(filter) || type.includes(filter) || singer.includes(filter) || honkeMaker.includes(filter));
+      row.style.display = show ? '' : 'none';
+      if(show) anyVisible = true;
     });
+    // 背景繰り返し防止
+    document.body.style.backgroundRepeat = anyVisible ? "no-repeat" : "repeat";
   });
 
-  const clearButton = document.getElementById('clearButton');
   clearButton.onclick = () => { searchInput.value=''; searchInput.dispatchEvent(new Event('input')); };
 
 });
