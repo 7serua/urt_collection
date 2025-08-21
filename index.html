@@ -33,29 +33,66 @@ table {
 
 th, td {
   border: 1px solid #ccc;
-  padding: 8px 12px;
+  padding: 6px 10px;
   text-align: left;
+  word-break: break-word;
+  white-space: normal;
 }
 
 th {
   background-color: #f4f4f4;
 }
 
-tr:nth-child(odd) { background-color: #ccffe5; }
-tr:nth-child(even) { background-color: #ffffff; }
-tr:hover {
-  background-color: #a0f0c0; /* 薄い水色に変更 */
-}
+#videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
+#videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
 
+tr:hover { background-color: #b3e5fc; }
 a { color: #007bff; text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+button {
+  padding: 4px 8px;
+  border: none;
+  background-color: #38b48b;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #2e8b57;
+}
+
+/* モーダル */
+#modal {
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+}
+
+#modalContent {
+  background:#fff;
+  margin:10% auto;
+  padding:20px;
+  width:80%;
+  max-width:500px;
+  border-radius:8px;
+  position: relative;
+}
+
+#modalClose {
+  position:absolute;
+  top:10px;
+  right:10px;
+  cursor:pointer;
+  font-weight:bold;
+}
 </style>
-</head>
-<body>
-
-<h1>動画リスト</h1>
-
+</he<h1>動画リスト</h1>
 <input type="text" id="searchInput" placeholder="検索...">
+
 <table id="videoTable">
   <thead>
     <tr>
@@ -63,44 +100,55 @@ a:hover { text-decoration: underline; }
       <th>曲名</th>
       <th>ニコニコ</th>
       <th>YouTube</th>
-      <th>出演者</th>
-      <th>イラスト</th>
-      <th>本家様</th>
-      <th>本家制作</th>
-      <th>今見れる？</th>
-      <th>備考</th>
+      <th>詳細</th>
     </tr>
   </thead>
   <tbody>
-    <!-- data.json から動的に行を生成 -->
+    <!-- JSON から生成 -->
   </tbody>
 </table>
+
+<!-- モーダル -->
+<div id="modal">
+  <div id="modalContent">
+    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">✖</span>
+    <div id="modalDetails"></div>
+  </div>
+</div>
 
 <script>
 // data.json を読み込む
 fetch('data.json')
-  .then(response => response.json())
+  .then(res => res.json())
   .then(data => {
     const tbody = document.querySelector('#videoTable tbody');
-    data.forEach(item => {
+    data.forEach((item, index) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${item["投稿日"]}</td>
         <td>${item["曲名"]}</td>
         <td>${item["ニコニコ"] !== "－" ? `<a href="${item["ニコニコ"]}" target="_blank">${item["ニコニコ"]}</a>` : "－"}</td>
         <td>${item["YouTube"]}</td>
-        <td>${item["出演者"]}</td>
-        <td>${item["イラスト"]}</td>
-        <td>${item["本家様"] !== "－" ? `<a href="${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : "－"}</td>
-        <td>${item["本家制作"]}</td>
-        <td>${item["今見れる？"]}</td>
-        <td>${item["備考"]}</td>
+        <td><button onclick="showDetails(${index})">詳細</button></td>
       `;
       tbody.appendChild(tr);
     });
+
+    window.showDetails = function(index) {
+      const item = data[index];
+      document.getElementById('modalDetails').innerHTML = `
+        <p><strong>出演者:</strong> ${item["出演者"]}</p>
+        <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
+        <p><strong>本家様:</strong> ${item["本家様"]}</p>
+        <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
+        <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
+        <p><strong>備考:</strong> ${item["備考"]}</p>
+      `;
+      document.getElementById('modal').style.display = 'block';
+    }
   });
 
-// 検索機能
+// 検索機能（トップページのみ対象）
 document.getElementById('searchInput').addEventListener('input', function() {
   const filter = this.value.toLowerCase();
   const rows = document.querySelectorAll('#videoTable tbody tr');
@@ -112,4 +160,5 @@ document.getElementById('searchInput').addEventListener('input', function() {
 </script>
 
 </body>
-</html>
+</html>ad>
+<body>
