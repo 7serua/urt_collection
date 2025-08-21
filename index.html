@@ -11,7 +11,11 @@ body {
   color: #000;
 }
 
-h1 { text-align:center; color:#fff; margin-bottom:20px; }
+h1 {
+  text-align:center;
+  color:#fff;
+  margin-bottom:20px;
+}
 
 #searchInput {
   margin-bottom:10px;
@@ -24,6 +28,7 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
 table {
   border-collapse: collapse;
   width: 100%;
+  table-layout: fixed; /* 曲名欄の幅固定に必須 */
   background-color: #fff;
 }
 
@@ -32,7 +37,7 @@ th, td {
   padding: 6px 10px;
   text-align: left;
   word-break: break-word;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 th { background-color: #f4f4f4; }
@@ -41,11 +46,19 @@ th { background-color: #f4f4f4; }
 #videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
 tr:hover { background-color: #b3e5fc; }
 
+td.song {
+  width: 35%;           /* 曲名欄を狭く */
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 a { color: #007bff; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 button {
-  padding: 6px 10px;
+  padding: 4px 8px;
   border: none;
   background-color: #38b48b;
   color: #fff;
@@ -62,9 +75,6 @@ button:hover { background-color: #2e8b57; }
 /* YouTube欄スリム化 */
 td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-/* 曲名幅調整 */
-td.song { width:35%; }
-
 </style>
 </head>
 <body>
@@ -76,7 +86,7 @@ td.song { width:35%; }
   <thead>
     <tr>
       <th>投稿日</th>
-      <th>曲名</th>
+      <th class="song">曲名</th>
       <th>ニコニコ動画</th>
       <th>YouTube</th>
       <th>詳細</th>
@@ -86,7 +96,7 @@ td.song { width:35%; }
   <tbody></tbody>
 </table>
 
-<div id="modal" onclick="closeModal(event)">
+<div id="modal">
   <div id="modalContent">
     <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
     <div id="modalDetails"></div>
@@ -94,33 +104,29 @@ td.song { width:35%; }
 </div>
 
 <script>
-function closeModal(e){
-  if(e.target.id==='modal'){document.getElementById('modal').style.display='none';}
-}
-
 fetch('data.json')
-.then(res=>res.json())
-.then(data=>{
-  const tbody=document.querySelector('#videoTable tbody');
+.then(res => res.json())
+.then(data => {
+  const tbody = document.querySelector('#videoTable tbody');
   data.forEach((item,index)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${item["投稿日"]}</td>
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="white-space:nowrap;">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
-      <td>${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
-      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
+      <td>${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">${item["ニコニコ"]}</a>`:"－"}</td>
+      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">${item["YouTube"]}</a>`:"－"}</td>
       <td><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  window.showDetails=function(index){
-    const item=data[index];
-    document.getElementById('modalDetails').innerHTML=`
+  window.showDetails = function(index){
+    const item = data[index];
+    document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="https://${item["本家様"]}" target="_blank">リンク</a>`:"－"}</p>
+      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`:"－"}</p>
       <p><strong>本家様製作者:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
@@ -128,16 +134,22 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  // 検索（曲名、ニコニコ、YouTube、歌唱者）
+  // モーダル外クリックで閉じる
+  window.onclick = function(event){
+    const modal = document.getElementById('modal');
+    if(event.target === modal){ modal.style.display='none'; }
+  }
+
+  // 検索（曲名、ニコニコ、YouTube、歌唱者非表示セル）
   document.getElementById('searchInput').addEventListener('input',function(){
-    const filter=this.value.toLowerCase();
+    const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
-      const text=row.textContent.toLowerCase();
-      row.style.display=text.includes(filter)?'':'none';
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(filter) ? '' : 'none';
     });
   });
+
 });
 </script>
-
 </body>
 </html>
