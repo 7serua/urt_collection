@@ -96,11 +96,16 @@ fetch('data.json')
   const tbody = document.querySelector('#videoTable tbody');
   data.forEach((item,index)=>{
     const tr = document.createElement('tr');
+    const nicoLink = item["ニコニコ"] !== "－" ? 
+      `<a href="https://${item["ニコニコ"]}" target="_blank">ニコニコで再生</a>` : "－";
+    const ytLink = item["YouTube"] !== "－" ? 
+      `<a href="${item["YouTube"]}" target="_blank">YouTubeで再生</a>` : "－";
+    
     tr.innerHTML = `
       <td>${item["投稿日"]}</td>
       <td>${item["曲名"]}</td>
-      <td>${item["ニコニコ"]!=="－"?`<a href="${item["ニコニコ"]}" target="_blank">▶ニコニコで再生</a>`:"－"}</td>
-      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTubeで再生</a>`:"－"}</td>
+      <td>${nicoLink}</td>
+      <td class="youtube">${ytLink}</td>
       <td><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
     `;
@@ -112,7 +117,7 @@ fetch('data.json')
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>出演者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="${item["本家様"]}" target="_blank">リンク</a>`:"－"}</p>
+      <p><strong>本家様:</strong> ${item["本家様"]}</p>
       <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
@@ -120,7 +125,7 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  // 検索（曲名・ニコニコ・YouTube・出演者も対象）
+  // 検索（曲名、ニコニコ、YouTube、出演者）
   document.getElementById('searchInput').addEventListener('input',function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
@@ -131,5 +136,6 @@ fetch('data.json')
 
 });
 </script>
+
 </body>
 </html>
