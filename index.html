@@ -110,11 +110,19 @@ fetch('data.json')
       const tr = document.createElement('tr');
 
       // 出演者を非表示セルとして検索対象にする
-      const performers = item["出演者"].split('・');
-      const hiddenPerformers = performers.join(' ');
+      const hiddenPerformers = item["出演者"].split('・').join(' ');
+<tr>
+  ...
+  <td class="hidden-performers" style="display:none;">${hiddenPerformers}</td>
+</tr>
 
       // YouTubeリンク整形（不可視文字除去）
       const youtubeURL = item["YouTube"].replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+<td>${
+  youtubeURL !== "－"
+    ? `<a href="${youtubeURL.startsWith('http') ? youtubeURL : 'https://' + youtubeURL}" target="_blank">${youtubeURL}</a>`
+    : "－"
+}</td>
 
       tr.innerHTML = `
         <td>${item["投稿日"]}</td>
@@ -154,7 +162,11 @@ fetch('data.json')
             ? `<a href="${item["YouTube"].startsWith('http') ? item["YouTube"].trim() : 'https://' + item["YouTube"].trim()}" target="_blank">${item["YouTube"]}</a>`
             : "－"
         }</p>
-        <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
+        <p><strong>本家様:</strong> ${
+  item["本家様"] !== "－" && item["本家様"] !== "オリジナル曲"
+    ? `<a href="${item["本家様"].trim()}" target="_blank">${item["本家様"]}</a>`
+    : item["本家様"]
+}</p>
         <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
         <p><strong>備考:</strong> ${item["備考"]}</p>
       `;
@@ -163,12 +175,12 @@ fetch('data.json')
 
     // 検索機能（出演者も非表示セルで検索可能）
     document.getElementById('searchInput').addEventListener('input', function() {
-      const filter = this.value.toLowerCase();
-      const rows = document.querySelectorAll('#videoTable tbody tr');
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
-      });
-    });
+  const filter = this.value.toLowerCase();
+  const rows = document.querySelectorAll('#videoTable tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(filter) ? '' : 'none';
+  });
+});
   });
 </script>
