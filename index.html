@@ -5,13 +5,13 @@
 <title>動画リスト</title>
 <style>
 body {
-  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
+  background: linear-gradient(to bottom, #a8f5c0, #6fd6a3, #ccf5ff);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
 }
 
-h1 { text-align:center; color:#fff; margin-bottom:20px; }
+h1 { text-align:center; color:#333; margin-bottom:20px; }
 
 #searchInput {
   margin-bottom:10px;
@@ -79,51 +79,48 @@ td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-over
       <th style="display:none;">出演者検索用</th>
     </tr>
   </thead>
-  <tbody>
-    <!-- JSON から生成 -->
-  </tbody>
+  <tbody></tbody>
 </table>
 
-<!-- モーダル -->
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">✖</span>
+    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
     <div id="modalDetails"></div>
   </div>
 </div>
 
 <script>
-// data.json を読み込む
 fetch('data.json')
-  .then(res => res.json())
-  .then(data => {
-    const tbody = document.querySelector('#videoTable tbody');
-    data.forEach((item, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = 
-        <td>${item["投稿日"]}</td>
-        <td>${item["曲名"]}</td>
-        <td>${item["ニコニコ"]!=="－"?`<a href="${item["ニコニコ"]}" target="_blank">リンク</a>`:"－"}</td>
-        <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">リンク</a>`:"－"}</td>
-        <td><button onclick="showDetails(${index})">詳細</button></td>
-        <td style="display:none;">${item["出演者"]}</td>
-       ;
+.then(res => res.json())
+.then(data => {
+  const tbody = document.querySelector('#videoTable tbody');
+  data.forEach((item,index)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item["投稿日"]}</td>
+      <td>${item["曲名"]}</td>
+      <td>${item["ニコニコ"]!=="－"?`<a href="${item["ニコニコ"]}" target="_blank">▶ニコニコで再生</a>`:"－"}</td>
+      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTubeで再生</a>`:"－"}</td>
+      <td><button onclick="showDetails(${index})">詳細</button></td>
+      <td style="display:none;">${item["出演者"]}</td>
+    `;
     tbody.appendChild(tr);
   });
 
   window.showDetails = function(index){
     const item = data[index];
-    document.getElementById('modalDetails').innerHTML = 
+    document.getElementById('modalDetails').innerHTML = `
+      <p><strong>出演者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
       <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="${item["本家様"]}" target="_blank">リンク</a>`:"－"}</p>
       <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
-    ;
+    `;
     document.getElementById('modal').style.display='block';
   }
 
-  // 検索（曲名、ニコニコ、YouTube、出演者）
+  // 検索（曲名・ニコニコ・YouTube・出演者も対象）
   document.getElementById('searchInput').addEventListener('input',function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
