@@ -17,25 +17,19 @@ h1 {
   margin-bottom:20px;
 }
 
-/* コントロールバー */
 #controls {
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  text-align:center;
   margin-bottom:10px;
-  gap:10px;
 }
 
-/* 検索バー */
 #searchInput {
   padding:5px;
-  width:200px; /* 少し短く */
+  width:200px;
   border:1px solid #ccc;
   border-radius:4px;
 }
 
-/* ボタン共通 */
-#clearSearch, #dateToggle {
+#clearSearch {
   padding:5px 10px;
   border:none;
   border-radius:4px;
@@ -43,55 +37,51 @@ h1 {
   background-color:#38b48b;
   color:#fff;
 }
-#clearSearch:hover, #dateToggle:hover {
-  background-color:#2e8b57;
-}
+#clearSearch:hover { background-color:#2e8b57; }
 
 table {
   border-collapse: collapse;
-  width: 90%; /* 少し狭くして中央寄せ */
+  width:90%;
+  margin:0 auto;
   table-layout: fixed;
   background-color: #fff;
-  margin:0 auto;
 }
 
 th, td {
-  border: 1px solid #ccc;
-  padding: 4px 6px; /* 少し小さくしてスリム化 */
-  text-align: left;
-  word-break: break-word;
-  white-space: nowrap;
-  font-size: 14px;
+  border:1px solid #ccc;
+  padding:4px 6px;
+  font-size:14px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
 }
 
-th { background-color: #f4f4f4; }
+th { background-color:#f4f4f4; }
 
-#videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
-#videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
-tr:hover { background-color: #b3e5fc; }
+#videoTable tbody tr:nth-child(odd) { background-color:#ffffff; }
+#videoTable tbody tr:nth-child(even) { background-color:#ccffe5; }
+tr:hover { background-color:#b3e5fc; }
 
-td.song { width:35%; overflow:hidden; text-overflow:ellipsis; }
-td.date { width:100px; text-align:left; }
+td.song { width:35%; text-align:left; }
+td.date { width:100px; text-align:center; }
+td.nico, td.youtube, td.detail { width: auto; text-align:center; }
 
-a { color: #007bff; text-decoration: none; }
-a:hover { text-decoration: underline; }
+a { color:#007bff; text-decoration:none; }
+a:hover { text-decoration:underline; }
 
 button {
-  padding: 4px 8px;
-  border: none;
-  background-color: #38b48b;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
+  padding:4px 6px;
+  border:none;
+  background-color:#38b48b;
+  color:#fff;
+  border-radius:4px;
+  cursor:pointer;
 }
-button:hover { background-color: #2e8b57; }
+button:hover { background-color:#2e8b57; }
 
-/* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
-#modalContent { background:#fff; margin:10% auto; padding:15px; width:70%; max-width:450px; border-radius:8px; position: relative; font-size:14px;}
+#modalContent { background:#fff; margin:10% auto; padding:15px; width:70%; max-width:450px; border-radius:8px; position:relative; font-size:14px;}
 #modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:28px; }
-
-td.youtube a, td.nico a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 </style>
 </head>
@@ -104,19 +94,14 @@ td.youtube a, td.nico a { display:inline-block; max-width:150px; overflow:hidden
   <button id="clearSearch">検索解除</button>
 </div>
 
-<!-- 日付順切替ボタンを投稿日のセルの真上に配置 -->
-<div style="width:90%; margin:0 auto 5px auto; text-align:left;">
-  <button id="dateToggle">日付順切替</button>
-</div>
-
 <table id="videoTable">
   <thead>
     <tr>
-      <th class="date">投稿日</th>
+      <th class="date">投稿日 <button id="dateToggle">⇅</button></th>
       <th class="song">曲名</th>
-      <th>ニコニコ動画</th>
-      <th>YouTube</th>
-      <th>詳細</th>
+      <th class="nico">ニコニコ動画</th>
+      <th class="youtube">YouTube</th>
+      <th class="detail">詳細</th>
       <th style="display:none;">歌唱者検索用</th>
     </tr>
   </thead>
@@ -140,16 +125,15 @@ fetch('data.json')
   function renderTable(sortedData){
     tbody.innerHTML = '';
     sortedData.forEach((item,index)=>{
-      let nicoLink = item["ニコニコ"]!=="－" ? `<a class="nico" href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>` : "－";
-      let ytLink = item["YouTube"]!=="－" ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>` : "－";
-
+      let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－";
+      let ytLink = (item["YouTube"] && item["YouTube"]!=="－") ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="date">${item["投稿日"]}</td>
         <td class="song">${item["曲名"]}</td>
-        <td>${nicoLink}</td>
+        <td class="nico">${nicoLink}</td>
         <td class="youtube">${ytLink}</td>
-        <td><button onclick="showDetails(${index})">詳細</button></td>
+        <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
         <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]}</td>
       `;
       tbody.appendChild(tr);
