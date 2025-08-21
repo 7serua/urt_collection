@@ -34,7 +34,7 @@ th, td {
   padding: 6px 10px;
   text-align: left;
   word-break: break-word;
-  white-space: normal;
+  vertical-align: middle; /* セル内文字を中央寄せ */
 }
 
 th { background-color: #f4f4f4; }
@@ -60,10 +60,10 @@ button:hover { background-color: #2e8b57; }
 
 /* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
-#modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
-#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:24px; }
+#modalContent { background:#fff; margin:10% auto; padding:20px; width:90%; max-width:500px; border-radius:8px; position: relative; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:28px; }
 
-td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflow:hidden; text-overflow:ellipsis; }
 
 </style>
 </head>
@@ -88,7 +88,7 @@ td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-over
 
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+    <span id="modalClose">&times;</span>
     <div id="modalDetails"></div>
   </div>
 </div>
@@ -99,11 +99,14 @@ fetch('data.json')
 .then(data => {
   const tbody = document.querySelector('#videoTable tbody');
   data.forEach((item,index)=>{
+    const honkeText = item["本家様"] === "オリジナル曲" ? "オリジナル曲" : item["本家様"];
+    const coverText = item["本家様"] === "オリジナル曲" ? "オリジナル曲" : "カバー曲";
     const tr = document.createElement('tr');
+    tr.dataset.type = coverText; // 検索用属性
     tr.innerHTML = `
       <td style="white-space:nowrap; text-align:center;">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
-      <td>${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
+      <td class="nicovideo">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
       <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
       <td style="text-align:center;"><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
@@ -125,21 +128,21 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  // モーダル外クリックで閉じる
-  window.onclick = function(event){
-    const modal = document.getElementById('modal');
-    if(event.target === modal){ modal.style.display='none'; }
-  }
+  const modal = document.getElementById('modal');
+  const modalClose = document.getElementById('modalClose');
+  modalClose.onclick = () => modal.style.display='none';
+  // モバイル・外クリックでも閉じる
+  window.onclick = event => { if(event.target === modal){ modal.style.display='none'; } }
 
-  // 検索（曲名、ニコニコ、YouTube、歌唱者非表示セル）
+  // 検索
   document.getElementById('searchInput').addEventListener('input',function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
       const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(filter) ? '' : 'none';
+      const type = row.dataset.type.toLowerCase();
+      row.style.display = (text.includes(filter) || type.includes(filter)) ? '' : 'none';
     });
   });
-
 });
 </script>
 </body>
