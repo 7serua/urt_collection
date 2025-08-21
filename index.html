@@ -5,7 +5,7 @@
 <title>動画リスト</title>
 <style>
 body {
-  background: linear-gradient(to bottom, #a6f7c2, #38b48b, #ccffe5);
+  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
@@ -32,14 +32,13 @@ th, td {
   padding: 6px 10px;
   text-align: left;
   word-break: break-word;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 th { background-color: #f4f4f4; }
 
 #videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
 #videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
-
 tr:hover { background-color: #b3e5fc; }
 
 a { color: #007bff; text-decoration: none; }
@@ -58,16 +57,10 @@ button:hover { background-color: #2e8b57; }
 /* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
 #modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
-#modalClose { position:absolute; top:10px; right:10px; cursor:pointer; font-weight:bold; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:24px; }
 
-/* YouTube列スリム化 */
-td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-/* ニコニコリンク1行 */
-td.nico a { white-space: nowrap; }
-
-/* 日付1行表示 */
-td.date { white-space: nowrap; }
+/* YouTube/ニコニコ欄スリム化 */
+td.youtube a, td.nico a { display:inline-block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -80,7 +73,7 @@ td.date { white-space: nowrap; }
     <tr>
       <th>投稿日</th>
       <th>曲名</th>
-      <th>ニコニコ</th>
+      <th>ニコニコ動画</th>
       <th>YouTube</th>
       <th>詳細</th>
       <th style="display:none;">出演者検索用</th>
@@ -91,7 +84,7 @@ td.date { white-space: nowrap; }
 
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+    <span id="modalClose">&times;</span>
     <div id="modalDetails"></div>
   </div>
 </div>
@@ -102,14 +95,12 @@ fetch('data.json')
 .then(data => {
   const tbody = document.querySelector('#videoTable tbody');
   data.forEach((item,index)=>{
-    const nicoLink = item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank" class="nico">▶ニコニコ動画</a>`:"－";
-    const ytLink = item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="date">${item["投稿日"]}</td>
+      <td>${item["投稿日"]}</td>
       <td>${item["曲名"]}</td>
-      <td>${nicoLink}</td>
-      <td class="youtube">${ytLink}</td>
+      <td class="nico">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
+      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
       <td><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
     `;
@@ -122,12 +113,18 @@ fetch('data.json')
       <p><strong>出演者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
       <p><strong>本家様:</strong> ${item["本家様"]}</p>
-      <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
+      <p><strong>本家様製作者:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
     `;
     document.getElementById('modal').style.display='block';
   }
+
+  const modal = document.getElementById('modal');
+  const modalClose = document.getElementById('modalClose');
+
+  modalClose.onclick = () => { modal.style.display='none'; }
+  modal.onclick = (e) => { if(e.target===modal) modal.style.display='none'; }
 
   // 検索（曲名、ニコニコ、YouTube、出演者）
   document.getElementById('searchInput').addEventListener('input',function(){
