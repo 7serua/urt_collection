@@ -23,7 +23,8 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
 table {
   border-collapse: collapse;
-  width: 100%;
+  width: 80%;
+  margin: 0 auto;
   table-layout: fixed;
   background-color: #fff;
 }
@@ -74,11 +75,11 @@ td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-over
 <table id="videoTable">
   <thead>
     <tr>
-      <th>投稿日</th>
+      <th style="width:12%; text-align:center;">投稿日</th>
       <th class="song">曲名</th>
-      <th>ニコニコ動画</th>
-      <th>YouTube</th>
-      <th>詳細</th>
+      <th style="width:18%;">ニコニコ動画</th>
+      <th style="width:18%;">YouTube</th>
+      <th style="width:12%; text-align:center;">詳細</th>
       <th style="display:none;">歌唱者検索用</th>
     </tr>
   </thead>
@@ -100,11 +101,11 @@ fetch('data.json')
   data.forEach((item,index)=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="white-space:nowrap;">${item["投稿日"]}</td>
+      <td style="white-space:nowrap; text-align:center;">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
       <td>${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
-      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">${item["YouTube"]}</a>`:"－"}</td>
-      <td><button onclick="showDetails(${index})">詳細</button></td>
+      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
+      <td style="text-align:center;"><button onclick="showDetails(${index})">詳細</button></td>
       <td style="display:none;">${item["出演者"]}</td>
     `;
     tbody.appendChild(tr);
@@ -112,10 +113,11 @@ fetch('data.json')
 
   window.showDetails = function(index){
     const item = data[index];
+    const honkeText = item["本家様"] === "オリジナル曲" ? "オリジナル曲" : `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`:"－"}</p>
+      <p><strong>本家様:</strong> ${honkeText}</p>
       <p><strong>本家様製作者:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
