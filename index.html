@@ -5,29 +5,11 @@
 <title>動画リスト</title>
 <style>
 body {
-  margin:0;
+  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
-  overflow-x: hidden;
-  position: relative;
-}
-
-/* 波アニメーション背景 */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0; width: 200%; height: 200%;
-  background: #7ee0a5;
-  border-radius: 43%;
-  animation: wave 10s linear infinite;
-  z-index: -1;
-}
-
-@keyframes wave {
-  0% { transform: translateX(0) translateY(0) rotate(0deg);}
-  50% { transform: translateX(-25%) translateY(10px) rotate(2deg);}
-  100% { transform: translateX(0) translateY(0) rotate(0deg);}
+  margin:0;
 }
 
 h1 { text-align:center; color:#fff; margin-bottom:20px; }
@@ -36,7 +18,7 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
   display:flex;
   gap:5px;
   align-items:center;
-  width:400px; /* 短めに設定 */
+  width:400px;
   margin-bottom:10px;
 }
 
@@ -192,7 +174,6 @@ fetch('data.json')
   modalClose.onclick = () => modal.style.display='none';
   window.onclick = event => { if(event.target === modal){ modal.style.display='none'; } }
 
-  // 検索処理
   const searchInput = document.getElementById('searchInput');
   searchInput.addEventListener('input', function(){
     const filter = this.value.toLowerCase();
@@ -205,4 +186,10 @@ fetch('data.json')
     });
   });
 
-  //
+  const clearButton = document.getElementById('clearButton');
+  clearButton.onclick = () => { searchInput.value=''; searchInput.dispatchEvent(new Event('input')); };
+
+});
+</script>
+</body>
+</html>
