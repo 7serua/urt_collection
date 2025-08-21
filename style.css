@@ -1,0 +1,63 @@
+/* ページ全体のスタイル */
+body {
+  background-color: #47885e; /* 背景色 */
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  color: #000; /* 文字色（必要に応じて変更） */
+}
+
+h1 {
+  color: #fff; /* 見出し文字色 */
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* 表のスタイル */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #fff; /* 表自体の背景は白 */
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4; /* ヘッダーは薄グレー */
+}
+
+/* 行の交互色 */
+tr:nth-child(odd) {
+  background-color: #ffffff; /* 白 */
+}
+
+tr:nth-child(even) {
+  background-color: #99ffcc; /* 淡い緑 */
+}
+
+/* マウスオーバー */
+tr:hover {
+  background-color: #e6f7ff;
+}
+
+/* リンクのスタイル */
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 検索ボックス */
+#searchInput {
+  margin-bottom: 10px;
+  padding: 5px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
