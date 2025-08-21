@@ -24,31 +24,27 @@ fetch('data.json')
     updateRowColors(); // ←追加
   }
 
-  // 交互色を再設定する関数
-  function updateRowColors() {
-    const rows = document.querySelectorAll('#videoTable tbody tr');
-    let visibleIndex = 0;
-    rows.forEach(row => {
-      if (row.style.display !== 'none') {
-        row.style.backgroundColor = visibleIndex % 2 === 0 ? '#ffffff' : '#ccffe5';
-        visibleIndex++;
-      }
-    });
-  }
 
-  window.showDetails = function(index){
-    const item = data[index];
-    const mainLink = item["本家様"] && item["本家様"]!=="オリジナル曲" && item["本家様"]!=="？" ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : item["本家様"];
-    document.getElementById('modalDetails').innerHTML = `
-      <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
-      <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>創造神:</strong> ${item["本家制作"]}</p>
-      <p><strong>本家様:</strong> ${mainLink}</p>
-      <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
-      <p><strong>備考:</strong> ${item["備考"]}</p>
-    `;
-    document.getElementById('modal').style.display='block';
-  }
+window.showDetails = function(index){
+  const item = data[index];
+  // 本家様がオリジナル曲・？・不明・未投稿でない場合のみリンク
+  const mainLink = item["本家様"] &&
+                   item["本家様"] !== "オリジナル曲" &&
+                   item["本家様"] !== "？" &&
+                   item["本家様"] !== "不明" &&
+                   item["本家様"] !== "未投稿"
+                   ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`
+                   : item["本家様"];
+  document.getElementById('modalDetails').innerHTML = `
+    <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
+    <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
+    <p><strong>創造神:</strong> ${item["本家制作"]}</p>
+    <p><strong>本家様:</strong> ${mainLink}</p>
+    <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
+    <p><strong>備考:</strong> ${item["備考"]}</p>
+  `;
+  document.getElementById('modal').style.display='block';
+}
 
   window.onclick = function(event){
     const modal = document.getElementById('modal');
