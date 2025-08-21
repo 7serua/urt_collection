@@ -106,7 +106,7 @@ button:hover { background-color:#2e8b57; }
 <table id="videoTable">
   <thead>
     <tr>
-      <th>投稿日 <span id="sortButton">⬆️⬇️</span></th>
+      <th>投稿日 <span id="sortButton">⇅</span></th>
       <th class="song">曲名</th>
       <th>ニコニコ動画</th>
       <th>YouTube</th>
@@ -170,13 +170,30 @@ fetch('data.json')
 
   renderTable(data);
 
-  document.getElementById('searchInput').addEventListener('input',function(){
-    const filter = this.value.toLowerCase();
-    document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(filter) ? '' : 'none';
-    });
+document.getElementById('searchInput').addEventListener('input', function() {
+  const filter = this.value.toLowerCase();
+  document.querySelectorAll('#videoTable tbody tr').forEach(row => {
+    const text = row.textContent.toLowerCase();
+
+    // 非表示の検索用セルを取得
+    const searchCell = row.querySelector('td:last-child').textContent;
+    const singer = searchCell;
+
+    // 「・」があれば「コラボ」を追加
+    const isCollab = singer.includes('・');
+    let combinedText = text + (isCollab ? ' コラボ' : '');
+
+    // カテゴリ判定：オリジナル曲・替え歌・声真似以外はカバー曲
+    const isOriginal = searchCell.includes('オリジナル曲');
+    const isKaeshi = searchCell.includes('替え歌');
+    const isMimic = searchCell.includes('声真似');
+    const isCover = !isOriginal && !isKaeshi && !isMimic;
+    combinedText += isCover ? ' カバー曲' : '';
+
+    row.style.display = combinedText.includes(filter) ? '' : 'none';
   });
+});
+
 
   document.getElementById('sortButton').addEventListener('click',()=>{
     asc = !asc;
