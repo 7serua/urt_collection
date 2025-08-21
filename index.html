@@ -135,71 +135,73 @@ fetch('data.json')
   .then(res => res.json())
   .then(data => {
     const tbody = document.querySelector('#videoTable tbody');
+
     data.forEach((item, index) => {
       const tr = document.createElement('tr');
 
-      // 出演者を「・」で分割してタグにする
+      // 出演者を「・」で分割してタグ化（表示はモーダルで）
       const performers = item["出演者"].split('・');
       const tagsHTML = performers.map(name => `<span class="tag">${name}</span>`).join(' ');
 
       tr.innerHTML = `
         <td>${item["投稿日"]}</td>
         <td>${item["曲名"]}</td>
-        <td>${item["ニコニコ"] !== "－" ? `<a href="${item["ニコニコ"]}" target="_blank">${item["ニコニコ"]}</a>` : "－"}</td>
+        <td>${item["ニコニコ"] !== "－" ? `<a href="${item["ニコニコ"].trim()}" target="_blank">${item["ニコニコ"]}</a>` : "－"}</td>
         <td>${
-  item["YouTube"] !== "－"
-    ? `<a href="${item["YouTube"].startsWith('http') ? item["YouTube"].trim() : 'https://' + item["YouTube"].trim()}" target="_blank">${item["YouTube"]}</a>`
-    : "－"
-}</td>
-        <td>${tagsHTML}</td> <!-- タグ化した出演者を表示 -->
+          item["YouTube"] !== "－"
+            ? `<a href="$
+          {item["YouTube"].startsWith('http') ? item["YouTube"].trim() : 'https://' + item["YouTube"].trim()}" target="_blank">${item["YouTube"]}</a>`
+            : "－"
+        }</td>
         <td><button onclick="showDetails(${index})">詳細</button></td>
+        <td class="hidden-performers">${performers.join(' ')}</td> <!-- 検索用非表示 -->
       `;
+
       tbody.appendChild(tr);
     });
 
+    // モーダル表示関数
     window.showDetails = function(index) {
-  const item = data[index];
-  document.getElementById('modalDetails').innerHTML = `
-    <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
+      const item = data[index];
+      const performers = item["出演者"].split('・');
 
-    <p><strong>本家様:</strong> ${
-      item["本家様"] !== "－" && item["本家様"] !== "オリジナル曲"
-        ? `<a href="${item["本家様"].trim()}" target="_blank">${item["本家様"]}</a>`
-        : item["本家様"]
-    }</p>
+      document.getElementById('modalDetails').innerHTML = `
+        <p><strong>出演者:</strong> ${performers.map(name => `<span class="tag">${name}</span>`).join(' ')}</p>
 
-    <p><strong>ニコニコ:</strong> ${
-      item["ニコニコ"] !== "－"
-        ? `<a href="${item["ニコニコ"].trim()}" target="_blank">${item["ニコニコ"]}</a>`
-        : "－"
-    }</p>
+        <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
 
-    <p><strong>YouTube:</strong> ${
-      item["YouTube"] !== "－"
-        ? `<a href="${item["YouTube"].startsWith('http') ? item["YouTube"].trim() : 'https://' + item["YouTube"].trim()}" target="_blank">${item["YouTube"]}</a>`
-        : "－"
-    }</p>
+        <p><strong>本家様:</strong> ${
+          item["本家様"] !== "－" && item["本家様"] !== "オリジナル曲"
+            ? `<a href="${item["本家様"].trim()}" target="_blank">${item["本家様"]}</a>`
+            : item["本家様"]
+        }</p>
 
-    <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
-    <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
-    <p><strong>備考:</strong> ${item["備考"]}</p>
-  `;
-  document.getElementById('modal').style.display = 'block';
-}
+        <p><strong>ニコニコ:</strong> ${
+          item["ニコニコ"] !== "－"
+            ? `<a href="${item["ニコニコ"].trim()}" target="_blank">${item["ニコニコ"]}</a>`
+            : "－"
+        }</p>
+
+        <p><strong>YouTube:</strong> ${
+          item["YouTube"] !== "－"
+            ? `<a href="${item["YouTube"].startsWith('http') ? item["YouTube"].trim() : 'https://' + item["YouTube"].trim()}" target="_blank">${item["YouTube"]}</a>`
+            : "－"
+        }</p>
+
+        <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
+        <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
+        <p><strong>備考:</strong> ${item["備考"]}</p>
+      `;
+      document.getElementById('modal').style.display = 'block';
+    };
+
+    // 検索機能（出演者も対象、非表示セル含む）
+        document.getElementById('searchInput').addEventListener('input', function() {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#videoTable tbody tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase(); // 非表示セルも含む
+        row.style.display = text.includes(filter) ? '' : 'none';
+      });
+    });
   });
-</script>
-
-// 検索機能（トップページのみ対象）
-const searchInput = document.getElementById('searchInput');
-searchInput.addEventListener('input', function() {
-  const filter = this.value.toLowerCase();
-  const rows = document.querySelectorAll('#videoTable tbody tr');
-  rows.forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-  });
-});
-</script>
-
-</body>
-</html>ad>
-<body>
