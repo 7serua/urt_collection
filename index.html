@@ -5,99 +5,59 @@
 <title>動画リスト</title>
 <style>
 body {
+  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
-  margin:0;
-  /* 背景グラデーション 繰り返さない */
-  background: linear-gradient(to bottom, #7ee0a5 0%, #38b48b 30%, #55c69b 60%, #ccffe5 100%);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
 }
-
 h1 { text-align:center; color:#fff; margin-bottom:20px; }
-
-#searchContainer {
-  display:flex;
-  gap:5px;
-  align-items:center;
-  width:400px;
-  margin-bottom:10px;
-  margin-left:auto;
-  margin-right:auto;
-}
-
 #searchInput {
+  margin-bottom:10px;
   padding:5px;
-  flex:1;
+  width:250px;
   border:1px solid #ccc;
   border-radius:4px;
 }
-
-#clearButton {
-  padding:5px 10px;
-  border:none;
-  background-color:#38b48b;
-  color:#fff;
-  border-radius:4px;
-  cursor:pointer;
-}
-#clearButton:hover { background-color:#2e8b57; }
-
 table {
   border-collapse: collapse;
-  width: 80%;
-  margin: 0 auto;
-  table-layout: auto;
+  width: 100%;
+  table-layout: fixed;
   background-color: #fff;
 }
-
 th, td {
   border: 1px solid #ccc;
   padding: 6px 10px;
+  text-align: left;
   word-break: break-word;
-  vertical-align: middle; 
+  white-space: normal;
 }
-
 th { background-color: #f4f4f4; }
-
 #videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
 #videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
 tr:hover { background-color: #b3e5fc; }
-
-td.song { width:35%; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
-td.date { text-align:center; padding-left:10px; padding-right:10px; white-space:nowrap; }
-
+td.song { width:35%; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 a { color: #007bff; text-decoration: none; }
 a:hover { text-decoration: underline; }
-
 button {
-  padding: 6px 10px;
+  padding: 4px 8px;
   border: none;
   background-color: #38b48b;
-  color:#fff;
+  color: #fff;
   border-radius: 4px;
-  cursor:pointer;
+  cursor: pointer;
 }
-button:hover { background-color:#2e8b57; }
-
+button:hover { background-color: #2e8b57; }
 /* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
-#modalContent { background:#fff; margin:10% auto; padding:20px; width:90%; max-width:500px; border-radius:8px; position: relative; }
-#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:48px; }
-
-td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflow:hidden; text-overflow:ellipsis; }
-
+#modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:30px; }
+td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
 
 <h1>動画リスト</h1>
-
-<div id="searchContainer">
-  <input id="searchInput" placeholder="検索...">
-  <button id="clearButton">検索解除</button>
-</div>
+<input id="searchInput" placeholder="検索...">
 
 <table id="videoTable">
   <thead>
@@ -107,7 +67,7 @@ td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflo
       <th>ニコニコ動画</th>
       <th>YouTube</th>
       <th>詳細</th>
-      <th style="display:none;">検索用タグ</th>
+      <th style="display:none;">歌唱者検索用</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -115,7 +75,7 @@ td.youtube a, td.nicovideo a { white-space:nowrap; display:inline-block; overflo
 
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose">&times;</span>
+    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
     <div id="modalDetails"></div>
   </div>
 </div>
@@ -125,41 +85,15 @@ fetch('data.json')
 .then(res => res.json())
 .then(data => {
   const tbody = document.querySelector('#videoTable tbody');
-
   data.forEach((item,index)=>{
-    let tags = [];
-    if(item["本家様"] === "オリジナル曲"){
-      tags.push("オリジナル曲");
-    } else if(item["本家様"] === "不明" || item["本家様"] === "?"){
-      tags.push("カバー曲");
-    } else {
-      tags.push("カバー曲");
-    }
-
-    if(item["備考"].includes("替え歌")){
-      tags.push("替え歌");
-      tags = tags.filter(t => t !== "カバー曲");
-    }
-    if(item["備考"].includes("声真似")){
-      tags.push("声真似");
-      tags = tags.filter(t => t !== "カバー曲");
-    }
-    if(item["出演者"].includes("・")){
-      tags.push("コラボ曲");
-    }
-
     const tr = document.createElement('tr');
-    tr.dataset.type = tags.join(" ");
-    tr.dataset.singer = item["出演者"].toLowerCase();
-    tr.dataset.honkeMaker = item["本家制作"].toLowerCase();
-
     tr.innerHTML = `
-      <td class="date">${item["投稿日"]}</td>
-      <td class="song">${item["曲名"]}</td>
-      <td class="nicovideo">${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
+      <td style="white-space:nowrap; text-align:left;">${item["投稿日"]}</td>
+      <td class="song" style="text-align:left;">${item["曲名"]}</td>
+      <td>${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
       <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
       <td><button onclick="showDetails(${index})">詳細</button></td>
-      <td style="display:none;">${tags.join(" ")}</td>
+      <td style="display:none;">${item["出演者"]}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -167,7 +101,6 @@ fetch('data.json')
   window.showDetails = function(index){
     const item = data[index];
     let honkeText;
-    // YouTubeの場合も含めてリンク化
     if(item["本家様"] === "オリジナル曲" || item["本家様"] === "不明" || item["本家様"] === "?"){
       honkeText = item["本家様"];
     } else if(item["本家様"].startsWith("https://") || item["本家様"].startsWith("http://")){
@@ -187,29 +120,20 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  const modal = document.getElementById('modal');
-  const modalClose = document.getElementById('modalClose');
-  modalClose.onclick = () => modal.style.display='none';
-  window.onclick = event => { 
-    if(event.target === modal){ modal.style.display='none'; } 
+  // モーダル外クリックで閉じる
+  window.onclick = function(event){
+    const modal = document.getElementById('modal');
+    if(event.target === modal){ modal.style.display='none'; }
   }
 
-  const searchInput = document.getElementById('searchInput');
-  const clearButton = document.getElementById('clearButton');
-
-  searchInput.addEventListener('input', function(){
+  // 検索
+  document.getElementById('searchInput').addEventListener('input',function(){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
       const text = row.textContent.toLowerCase();
-      const type = row.dataset.type.toLowerCase();
-      const singer = row.dataset.singer.toLowerCase();
-      const honkeMaker = row.dataset.honkeMaker.toLowerCase();
-      const show = (text.includes(filter) || type.includes(filter) || singer.includes(filter) || honkeMaker.includes(filter));
-      row.style.display = show ? '' : 'none';
+      row.style.display = text.includes(filter) ? '' : 'none';
     });
   });
-
-  clearButton.onclick = () => { searchInput.value=''; searchInput.dispatchEvent(new Event('input')); };
 
 });
 </script>
