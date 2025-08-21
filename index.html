@@ -5,104 +5,110 @@
 <title>動画リスト</title>
 <style>
 body {
-  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
+  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #a0ffc0);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
 }
 
-h1 {
-  text-align:center;
-  color:#fff;
-  margin-bottom:20px;
+h1 { text-align:center; color:#fff; margin-bottom:20px; }
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>動画リスト</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  color: #000;
+  margin:0;
+  /* 背景グラデーション 繰り返さない */
+  background: linear-gradient(to bottom, #7ee0a5 0%, #38b48b 30%, #55c69b 60%, #ccffe5 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
-#controls {
-  text-align:center;
-  margin-bottom:10px;
-}
+h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
 #searchInput {
+  margin-bottom:10px;
   padding:5px;
-  width:200px;
+  width:250px;
   border:1px solid #ccc;
   border-radius:4px;
 }
 
-#clearSearch {
-  padding:5px 10px;
-  border:none;
-  border-radius:4px;
-  cursor:pointer;
-  background-color:#38b48b;
-  color:#fff;
-}
-#clearSearch:hover { background-color:#2e8b57; }
-
+/* テーブル */
 table {
   border-collapse: collapse;
-  width:90%;
-  margin:0 auto;
-  table-layout: fixed;
+  width: 100%;
+  table-layout: auto;
   background-color: #fff;
+  margin: 0 auto;
 }
 
 th, td {
-  border:1px solid #ccc;
-  padding:4px 6px;
-  font-size:14px;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-  overflow:hidden;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  word-break: break-word;
+  white-space: nowrap;
 }
 
-th { background-color:#f4f4f4; }
+th { background-color: #f4f4f4; }
 
-#videoTable tbody tr:nth-child(odd) { background-color:#ffffff; }
-#videoTable tbody tr:nth-child(even) { background-color:#ccffe5; }
-tr:hover { background-color:#b3e5fc; }
+td.date, td.detail, td.nico, td.youtube {
+  text-align: center;
+  white-space: nowrap;
+}
 
-td.song { width:35%; text-align:left; }
-td.date { width:100px; text-align:center; }
-td.nico, td.youtube, td.detail { width: auto; text-align:center; }
+td.song {
+  text-align: left;
+  min-width: 200px;
+  max-width: 50%;
+}
 
-a { color:#007bff; text-decoration:none; }
-a:hover { text-decoration:underline; }
+tr:hover { background-color: #b3e5fc; }
+
+a { color: #007bff; text-decoration: none; }
+a:hover { text-decoration: underline; }
 
 button {
-  padding:4px 6px;
-  border:none;
-  background-color:#38b48b;
-  color:#fff;
-  border-radius:4px;
-  cursor:pointer;
+  padding: 4px 8px;
+  border: none;
+  background-color: #38b48b;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
 }
-button:hover { background-color:#2e8b57; }
+button:hover { background-color: #2e8b57; }
 
+/* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
-#modalContent { background:#fff; margin:10% auto; padding:15px; width:70%; max-width:450px; border-radius:8px; position:relative; font-size:14px;}
-#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:28px; }
+#modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:32px; }
 
+/* レスポンシブ */
+@media screen and (max-width:600px){
+  td.song { max-width: 60%; }
+  table, th, td { font-size:14px; }
+}
 </style>
 </head>
 <body>
 
 <h1>動画リスト</h1>
-
-<div id="controls">
-  <input id="searchInput" placeholder="検索...">
-  <button id="clearSearch">検索解除</button>
-</div>
+<input id="searchInput" placeholder="検索...">
 
 <table id="videoTable">
   <thead>
     <tr>
-      <th class="date">投稿日 <button id="dateToggle">⇅</button></th>
+      <th>投稿日</th>
       <th class="song">曲名</th>
-      <th class="nico">ニコニコ動画</th>
-      <th class="youtube">YouTube</th>
-      <th class="detail">詳細</th>
-      <th style="display:none;">歌唱者検索用</th>
+      <th>ニコニコ動画</th>
+      <th>YouTube</th>
+      <th>詳細</th>
+      <th style="display:none;">検索用</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -110,7 +116,7 @@ button:hover { background-color:#2e8b57; }
 
 <div id="modal">
   <div id="modalContent">
-    <span id="modalClose">&times;</span>
+    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
     <div id="modalDetails"></div>
   </div>
 </div>
@@ -120,7 +126,6 @@ fetch('data.json')
 .then(res => res.json())
 .then(data => {
   const tbody = document.querySelector('#videoTable tbody');
-  let ascending = true;
 
   function renderTable(sortedData){
     tbody.innerHTML = '';
@@ -140,15 +145,13 @@ fetch('data.json')
     });
   }
 
-  renderTable(data);
-
   window.showDetails = function(index){
     const item = data[index];
-    let honkeLink = (item["本家様"] && item["本家様"] !== "オリジナル曲" && item["本家様"] !== "？") ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : item["本家様"];
+    const mainLink = item["本家様"] && item["本家様"]!=="オリジナル曲" && item["本家様"]!=="？" ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : item["本家様"];
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${honkeLink}</p>
+      <p><strong>本家様:</strong> ${mainLink}</p>
       <p><strong>創造神:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
@@ -156,35 +159,24 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  document.getElementById('modalClose').onclick = function(){
-    document.getElementById('modal').style.display='none';
-  }
+  // モーダル外クリックで閉じる
   window.onclick = function(event){
-    if(event.target === document.getElementById('modal')) document.getElementById('modal').style.display='none';
+    const modal = document.getElementById('modal');
+    if(event.target === modal){ modal.style.display='none'; }
   }
 
-  function searchTable(){
-    const filter = document.getElementById('searchInput').value.toLowerCase();
+  // 初回描画
+  renderTable(data);
+
+  // 検索機能
+  document.getElementById('searchInput').addEventListener('input',function(){
+    const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
       const text = row.textContent.toLowerCase();
       row.style.display = text.includes(filter) ? '' : 'none';
     });
-  }
-
-  document.getElementById('searchInput').addEventListener('input', searchTable);
-  document.getElementById('clearSearch').addEventListener('click', function(){
-    document.getElementById('searchInput').value = '';
-    searchTable();
   });
 
-  document.getElementById('dateToggle').addEventListener('click', function(){
-    ascending = !ascending;
-    let sorted = data.slice().sort((a,b)=>{
-      let da = new Date(a["投稿日"]), db = new Date(b["投稿日"]);
-      return ascending ? da-db : db-da;
-    });
-    renderTable(sorted);
-  });
 });
 </script>
 </body>
