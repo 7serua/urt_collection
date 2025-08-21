@@ -5,13 +5,13 @@
 <title>動画リスト</title>
 <style>
 body {
-  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
+  background: linear-gradient(to bottom, #a8f5c0, #6fd6a3, #ccf5ff);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
 }
 
-h1 { text-align:center; color:#fff; margin-bottom:20px; }
+h1 { text-align:center; color:#333; margin-bottom:20px; }
 
 #searchInput {
   margin-bottom:10px;
@@ -112,7 +112,7 @@ fetch('data.json')
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>出演者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="${item["本家様"]}" target="_blank">▶リンク</a>`:"－"}</p>
+      <p><strong>本家様:</strong> ${item["本家様"]!=="オリジナル曲"?`<a href="${item["本家様"]}" target="_blank">リンク</a>`:"－"}</p>
       <p><strong>本家制作:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
@@ -120,5 +120,16 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  // 検索（曲名、ニコニコ、YouTube、出演者）
-  document.getElementById('searchInput')
+  // 検索（曲名・ニコニコ・YouTube・出演者も対象）
+  document.getElementById('searchInput').addEventListener('input',function(){
+    const filter = this.value.toLowerCase();
+    document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(filter) ? '' : 'none';
+    });
+  });
+
+});
+</script>
+</body>
+</html>
