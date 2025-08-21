@@ -122,7 +122,8 @@ fetch('data.json')
   youtubeURL !== "－"
     ? `<a href="${youtubeURL.startsWith('http') ? youtubeURL : 'https://' + youtubeURL}" target="_blank">${youtubeURL}</a>`
     : "－"
-}</td>
+}
+</td>
 
       tr.innerHTML = `
         <td>${item["投稿日"]}</td>
