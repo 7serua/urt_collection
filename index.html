@@ -5,21 +5,25 @@
 <title>動画リスト</title>
 <style>
 body {
-  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #a0ffd5, #ccffe5);
+  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
+  margin:0;
 }
 
 h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
-#searchInput {
+#searchWrapper {
+  text-align:center;
   margin-bottom:10px;
+}
+
+#searchInput {
   padding:5px;
-  width:200px;
+  width:250px;
   border:1px solid #ccc;
   border-radius:4px;
-  display:inline-block;
 }
 
 #clearSearch {
@@ -32,6 +36,17 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
   cursor:pointer;
 }
 #clearSearch:hover { background-color:#2e8b57; }
+
+#dateToggle {
+  padding:4px 8px;
+  border:none;
+  border-radius:4px;
+  background-color:#38b48b;
+  color:#fff;
+  cursor:pointer;
+  margin-left:10px;
+}
+#dateToggle:hover { background-color:#2e8b57; }
 
 table {
   border-collapse: collapse;
@@ -64,7 +79,7 @@ button {
   padding: 4px 8px;
   border: none;
   background-color: #38b48b;
-  color: #fff;
+  color:#fff;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -73,26 +88,31 @@ button:hover { background-color: #2e8b57; }
 /* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
 #modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
-#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:32px; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:28px; }
 
-td.youtube a, td.nicovideo a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+td.youtube a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
 
 <h1>動画リスト</h1>
-<input id="searchInput" placeholder="検索...">
-<button id="clearSearch">検索解除</button>
+
+<div id="searchWrapper">
+  <input id="searchInput" placeholder="検索...">
+  <button id="clearSearch">検索解除</button>
+  <button id="dateToggle">日付順切替</button>
+</div>
 
 <table id="videoTable">
   <thead>
     <tr>
-      <th style="width:90px;">投稿日</th>
+      <th>投稿日</th>
       <th class="song">曲名</th>
-      <th style="width:120px;">ニコニコ動画</th>
-      <th style="width:120px;">YouTube</th>
-      <th style="width:70px;">詳細</th>
+      <th>ニコニコ動画</th>
+      <th>YouTube</th>
+      <th>詳細</th>
       <th style="display:none;">歌唱者検索用</th>
+      <th style="display:none;">検索用タグ</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -106,51 +126,21 @@ td.youtube a, td.nicovideo a { display:inline-block; max-width:150px; overflow:h
 </div>
 
 <script>
+let sortAsc = true;
+let videoData = [];
+
 fetch('data.json')
 .then(res => res.json())
 .then(data => {
-
-  // 日付逆順ソート（新しい順）
-  data.sort((a,b) => new Date(b["投稿日"]) - new Date(a["投稿日"]));
-
-  const tbody = document.querySelector('#videoTable tbody');
-  data.forEach((item,index)=>{
-    const tr = document.createElement('tr');
-
-    const nicoLink = item["ニコニコ"] && item["ニコニコ"]!=="－" ? 
-      `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>` : "－";
-    const ytLink = item["YouTube"] && item["YouTube"]!=="－" ? 
-      `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>` : "－";
-
-    tr.innerHTML = `
-      <td style="white-space:nowrap; text-align:left;">${item["投稿日"]}</td>
-      <td class="song">${item["曲名"]}</td>
-      <td class="nicovideo">${nicoLink}</td>
-      <td class="youtube">${ytLink}</td>
-      <td><button onclick="showDetails(${index})">詳細</button></td>
-      <td style="display:none;">${item["出演者"]}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  videoData = data;
+  renderTable(videoData);
 
   window.showDetails = function(index){
-    const item = data[index];
-
-    // 本家様リンク判定
-    let honkeText = item["本家様"];
-    let honkeHTML;
-    if(!honkeText || honkeText==="－" || honkeText==="オリジナル曲" || honkeText==="？"){
-      honkeHTML = honkeText==="オリジナル曲" ? "オリジナル曲" : "－";
-    } else if(honkeText.includes("youtube.com")){
-      honkeHTML = `<a href="${honkeText}" target="_blank">${honkeText}</a>`;
-    } else {
-      honkeHTML = `<a href="https://${honkeText}" target="_blank">${honkeText}</a>`;
-    }
-
+    const item = videoData[index];
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-      <p><strong>本家様:</strong> ${honkeHTML}</p>
+      <p><strong>本家様:</strong> ${(item["本家様"]==="オリジナル曲" || item["本家様"]==="？") ? item["本家様"] : `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`}</p>
       <p><strong>創造神:</strong> ${item["本家制作"]}</p>
       <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
       <p><strong>備考:</strong> ${item["備考"]}</p>
@@ -159,35 +149,51 @@ fetch('data.json')
   }
 
   // モーダル閉じる
-  document.getElementById('modalClose').onclick = function(){
-    document.getElementById('modal').style.display='none';
-  }
-  window.onclick = function(event){
-    if(event.target === document.getElementById('modal')){
-      document.getElementById('modal').style.display='none';
-    }
-  }
+  const modal = document.getElementById('modal');
+  document.getElementById('modalClose').onclick = ()=>{ modal.style.display='none'; };
+  window.onclick = function(event){ if(event.target === modal) modal.style.display='none'; }
 
   // 検索
   const searchInput = document.getElementById('searchInput');
   const clearBtn = document.getElementById('clearSearch');
-  searchInput.addEventListener('input', function(){
-    const filter = this.value.toLowerCase();
-    let anyShown = false;
-    document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
-      const text = row.textContent.toLowerCase();
-      if(text.includes(filter)){
-        row.style.display='';
-        anyShown = true;
-      } else row.style.display='none';
-    });
-  });
-  clearBtn.onclick = function(){
-    searchInput.value='';
-    searchInput.dispatchEvent(new Event('input'));
-  }
+  searchInput.addEventListener('input',()=> renderTable(videoData));
+  clearBtn.onclick = ()=>{ searchInput.value=''; renderTable(videoData); }
 
+  // 日付順切替
+  document.getElementById('dateToggle').onclick = ()=>{
+    sortAsc = !sortAsc;
+    renderTable(videoData);
+  }
 });
-</script>
-</body>
-</html>
+
+function renderTable(data){
+  const tbody = document.querySelector('#videoTable tbody');
+  tbody.innerHTML='';
+  const search = document.getElementById('searchInput').value.toLowerCase();
+
+  let sortedData = [...data];
+  sortedData.sort((a,b)=>{
+    if(sortAsc) return a["投稿日"].localeCompare(b["投稿日"]);
+    else return b["投稿日"].localeCompare(a["投稿日"]);
+  });
+
+  sortedData.forEach((item,index)=>{
+    // 検索用タグ作成
+    let tags = [];
+    if(item["本家様"]==="オリジナル曲") tags.push("オリジナル曲");
+    if(item["備考"].includes("声真似")) tags.push("声真似");
+    if(item["備考"].includes("替え歌")) tags.push("替え歌");
+    if(item["本家様"]!=="オリジナル曲" && !item["備考"].includes("声真似") && !item["備考"].includes("替え歌")) tags.push("カバー曲");
+    if(item["出演者"].includes("・")) tags.push("コラボ曲");
+
+    const rowText = `${item["投稿日"]} ${item["曲名"]} ${item["ニコニコ"]} ${item["YouTube"]} ${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["備考"]} ${tags.join(" ")}`.toLowerCase();
+    if(!rowText.includes(search)) return;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="white-space:nowrap;">${item["投稿日"]}</td>
+      <td class="song">${item["曲名"]}</td>
+      <td>${item["ニコニコ"]!=="－"?`<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－"}</td>
+      <td class="youtube">${item["YouTube"]!=="－"?`<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－"}</td>
+      <td><button onclick="showDetails(${index})">詳細</button></td>
+      <td style="display:none;">${
