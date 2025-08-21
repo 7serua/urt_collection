@@ -5,20 +5,39 @@
 <title>動画リスト</title>
 <style>
 body {
-  background: linear-gradient(to bottom, #7ee0a5, #38b48b, #ccffe5);
+  margin:0;
   font-family: Arial, sans-serif;
   padding: 20px;
   color: #000;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 波アニメーション背景 */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 200%; height: 200%;
+  background: #7ee0a5;
+  border-radius: 43%;
+  animation: wave 10s linear infinite;
+  z-index: -1;
+}
+
+@keyframes wave {
+  0% { transform: translateX(0) translateY(0) rotate(0deg);}
+  50% { transform: translateX(-25%) translateY(10px) rotate(2deg);}
+  100% { transform: translateX(0) translateY(0) rotate(0deg);}
 }
 
 h1 { text-align:center; color:#fff; margin-bottom:20px; }
 
 #searchContainer {
-  margin: 0 auto 10px auto; /* 中央寄せ＋下マージン */
   display:flex;
   gap:5px;
   align-items:center;
-  width: 80%; /* 表と同じ幅 */
+  width:400px; /* 短めに設定 */
+  margin-bottom:10px;
 }
 
 #searchInput {
@@ -31,7 +50,7 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
 #clearButton {
   padding:5px 10px;
   border:none;
-  background-color:#38b48b; /* 緑色 */
+  background-color:#38b48b;
   color:#fff;
   border-radius:4px;
   cursor:pointer;
@@ -122,13 +141,11 @@ fetch('data.json')
 
   data.forEach((item,index)=>{
     let tags = [];
-
     if(item["本家様"] === "オリジナル曲"){
       tags.push("オリジナル曲");
     } else {
       tags.push("カバー曲");
     }
-
     if(item["備考"].includes("替え歌")){
       tags.push("替え歌");
       tags = tags.filter(t => t !== "カバー曲");
@@ -137,14 +154,14 @@ fetch('data.json')
       tags.push("声真似");
       tags = tags.filter(t => t !== "カバー曲");
     }
-
     if(item["出演者"].includes("・")){
       tags.push("コラボ曲");
     }
 
     const tr = document.createElement('tr');
     tr.dataset.type = tags.join(" ");
-    tr.dataset.singer = item["出演者"].toLowerCase(); // 歌唱者検索用
+    tr.dataset.singer = item["出演者"].toLowerCase();
+    tr.dataset.honkeMaker = item["本家制作"].toLowerCase();
     tr.innerHTML = `
       <td class="date">${item["投稿日"]}</td>
       <td class="song">${item["曲名"]}</td>
@@ -158,7 +175,7 @@ fetch('data.json')
 
   window.showDetails = function(index){
     const item = data[index];
-    const honkeText = item["本家様"] === "オリジナル曲" ? "オリジナル曲" : `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
+    const honkeText = (item["本家様"] === "オリジナル曲" || item["本家様"] === "不明") ? item["本家様"] : `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`;
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
@@ -183,17 +200,9 @@ fetch('data.json')
       const text = row.textContent.toLowerCase();
       const type = row.dataset.type.toLowerCase();
       const singer = row.dataset.singer.toLowerCase();
-      row.style.display = (text.includes(filter) || type.includes(filter) || singer.includes(filter)) ? '' : 'none';
+      const honkeMaker = row.dataset.honkeMaker.toLowerCase();
+      row.style.display = (text.includes(filter) || type.includes(filter) || singer.includes(filter) || honkeMaker.includes(filter)) ? '' : 'none';
     });
   });
 
-  // 検索解除ボタン
-  document.getElementById('clearButton').onclick = () => {
-    searchInput.value = '';
-    searchInput.dispatchEvent(new Event('input'));
-  };
-
-});
-</script>
-</body>
-</html>
+  //
