@@ -3,14 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <title>動画リスト</title>
-<link rel="stylesheet" href="style.css">
 <style>
-  table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid #ccc; padding: 5px; }
+body {
+  background-color: #47885e;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  color: #000;
+}
+
+h1 {
+  color: #fff;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#searchInput {
+  margin-bottom: 10px;
+  padding: 5px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #fff;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+tr:nth-child(odd) { background-color: #ffffff; }
+tr:nth-child(even) { background-color: #99ffcc; }
+tr:hover { background-color: #e6f7ff; }
+
+a { color: #007bff; text-decoration: none; }
+a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+
 <h1>動画リスト</h1>
+
+<input type="text" id="searchInput" placeholder="検索...">
 <table id="videoTable">
   <thead>
     <tr>
@@ -19,30 +62,52 @@
       <th>ニコニコ</th>
       <th>YouTube</th>
       <th>出演者</th>
+      <th>イラスト</th>
+      <th>本家様</th>
+      <th>本家制作</th>
       <th>今見れる？</th>
+      <th>備考</th>
     </tr>
   </thead>
-  <tbody></tbody>
+  <tbody>
+    <!-- data.json から動的に行を生成 -->
+  </tbody>
 </table>
 
 <script>
+// data.json を読み込む
 fetch('data.json')
   .then(response => response.json())
   .then(data => {
     const tbody = document.querySelector('#videoTable tbody');
     data.forEach(item => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${item['投稿日']}</td>
-        <td>${item['曲名']}</td>
-        <td><a href="${item['ニコニコ']}" target="_blank">${item['ニコニコ']}</a></td>
-        <td><a href="${item['YouTube']}" target="_blank">${item['YouTube']}</a></td>
-        <td>${item['出演者']}</td>
-        <td>${item['今見れる？']}</td>
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item["投稿日"]}</td>
+        <td>${item["曲名"]}</td>
+        <td>${item["ニコニコ"] !== "－" ? `<a href="${item["ニコニコ"]}" target="_blank">${item["ニコニコ"]}</a>` : "－"}</td>
+        <td>${item["YouTube"]}</td>
+        <td>${item["出演者"]}</td>
+        <td>${item["イラスト"]}</td>
+        <td>${item["本家様"] !== "－" ? `<a href="${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : "－"}</td>
+        <td>${item["本家制作"]}</td>
+        <td>${item["今見れる？"]}</td>
+        <td>${item["備考"]}</td>
       `;
-      tbody.appendChild(row);
+      tbody.appendChild(tr);
     });
   });
+
+// 検索機能
+document.getElementById('searchInput').addEventListener('input', function() {
+  const filter = this.value.toLowerCase();
+  const rows = document.querySelectorAll('#videoTable tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(filter) ? '' : 'none';
+  });
+});
 </script>
+
 </body>
 </html>
