@@ -1,3 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>動画リスト</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  color: #000;
+  margin:0;
+  /* 背景グラデーション 繰り返さない */
+  background: linear-gradient(to bottom, #7ee0a5 0%, #38b48b 30%, #55c69b 60%, #ccffe5 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+h1 { text-align:center; color:#fff; margin-bottom:20px; }
+
+#searchContainer {
+  display: flex;
+  gap: 5px;
+  justify-content: center; /* 中央寄せ */
+  align-items: center;
+  margin-bottom: 10px;
+}
+#searchInput {
+  padding:5px;
+  width:250px;
+  border:1px solid #ccc;
+  border-radius:4px;
+}
+
+#clearButton {
+  padding:5px 10px;
+  border:none;
+  background-color:#38b48b;
+  color:#fff;
+  border-radius:4px;
+  cursor:pointer;
+}
+#clearButton:hover { background-color:#2e8b57; }
+
+table {
+  border-collapse: collapse;
+  width: 80%;
+  margin: 0 auto;
+  table-layout: auto;
+  background-color: #fff;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  word-break: break-word;
+  vertical-align: middle; 
+}
+
+th { background-color: #f4f4f4; }
+
+#videoTable tbody tr:nth-child(odd) { background-color: #ffffff; }
+#videoTable tbody tr:nth-child(even) { background-color: #ccffe5; }
+tr:hover { background-color: #b3e5fc; }
+
+td.song { width:35%; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
+td.date { text-align:center; padding-left:10px; padding-right:10px; white-space:nowrap; }
+
+a { color: #007bff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  padding: 6px 10px;
+  border: none;
+  background-color: #38b48b;
+  color:#fff;
+  border-radius: 4px;
+  cursor:pointer;
+}
+button:hover { background-color:#2e8b57; }
+
+/* モーダル */
+#modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
+#modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
+#modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:32px; }
+
+/* 日付順切り替え矢印 */
+#sortButton {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+/* レスポンシブ */
+@media screen and (max-width:600px){
+  td.song { max-width: 40%; }
+  table, th, td { font-size:14px; }
+}
+
+td.nico,
+td.youtube,
+td.detail {
+  text-align: center;
+}
+
+  
+</style>
+</head>
+<body>
+
+<h1>動画リスト</h1>
+
+<!-- 検索バーとクリアボタンはここ -->
+<div id="searchContainer">
+  <input id="searchInput" placeholder="検索...">
+  <button id="clearButton">クリア</button>
+</div>
+
+<table id="videoTable">
+  <thead>
+    <tr>
+      <th>投稿日 <span id="sortButton">⇅</span></th>
+      <th class="song">曲名</th>
+      <th>ニコニコ動画</th>
+      <th>YouTube</th>
+      <th>詳細</th>
+      <th style="display:none;">検索用</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="modal">
+  <div id="modalContent">
+    <span id="modalClose" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+    <div id="modalDetails"></div>
+  </div>
+</div>
+
 <script>
 fetch('data.json')
 .then(res => res.json())
@@ -21,30 +158,21 @@ fetch('data.json')
       `;
       tbody.appendChild(tr);
     });
-    updateRowColors(); // ←追加
   }
 
-
-window.showDetails = function(index){
-  const item = data[index];
-  // 本家様がオリジナル曲・？・不明・未投稿でない場合のみリンク
-  const mainLink = item["本家様"] &&
-                   item["本家様"] !== "オリジナル曲" &&
-                   item["本家様"] !== "？" &&
-                   item["本家様"] !== "不明" &&
-                   item["本家様"] !== "未投稿"
-                   ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`
-                   : item["本家様"];
-  document.getElementById('modalDetails').innerHTML = `
-    <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
-    <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
-    <p><strong>創造神:</strong> ${item["本家制作"]}</p>
-    <p><strong>本家様:</strong> ${mainLink}</p>
-    <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
-    <p><strong>備考:</strong> ${item["備考"]}</p>
-  `;
-  document.getElementById('modal').style.display='block';
-}
+  window.showDetails = function(index){
+    const item = data[index];
+    const mainLink = item["本家様"] && item["本家様"]!=="オリジナル曲" && item["本家様"]!=="？" ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : item["本家様"];
+    document.getElementById('modalDetails').innerHTML = `
+      <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
+      <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
+      <p><strong>創造神:</strong> ${item["本家制作"]}</p>
+      <p><strong>本家様:</strong> ${mainLink}</p>
+      <p><strong>今見れる？:</strong> ${item["今見れる？"]}</p>
+      <p><strong>備考:</strong> ${item["備考"]}</p>
+    `;
+    document.getElementById('modal').style.display='block';
+  }
 
   window.onclick = function(event){
     const modal = document.getElementById('modal');
@@ -58,12 +186,15 @@ window.showDetails = function(index){
     document.querySelectorAll('#videoTable tbody tr').forEach(row => {
       const text = row.textContent.toLowerCase();
 
+      // 非表示の検索用セルを取得
       const searchCell = row.querySelector('td:last-child').textContent;
       const singer = searchCell;
 
+      // 「・」があれば「コラボ」を追加
       const isCollab = singer.includes('・');
       let combinedText = text + (isCollab ? ' コラボ' : '');
 
+      // カテゴリ判定：オリジナル曲・替え歌・声真似以外はカバー曲
       const isOriginal = searchCell.includes('オリジナル曲');
       const isKaeshi = searchCell.includes('替え歌');
       const isMimic = searchCell.includes('声真似');
@@ -72,9 +203,9 @@ window.showDetails = function(index){
 
       row.style.display = combinedText.includes(filter) ? '' : 'none';
     });
-    updateRowColors(); // ←追加
   });
 
+  // 検索解除ボタンの動作
   document.getElementById('clearButton').addEventListener('click', () => {
     document.getElementById('searchInput').value = '';
     document.getElementById('searchInput').dispatchEvent(new Event('input'));
@@ -90,3 +221,5 @@ window.showDetails = function(index){
 
 });
 </script>
+</body>
+</html>
