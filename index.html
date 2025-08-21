@@ -13,6 +13,17 @@ body {
 }
 }
 
+<script>
+// 検索機能（トップページのみ対象）
+document.getElementById('searchInput').addEventListener('input', function() {
+  const filter = this.value.toLowerCase();
+  const rows = document.querySelectorAll('#videoTable tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(filter) ? '' : 'none';
+  });
+});
+</script>
 h1 {
   color: #fff;
   text-align: center;
