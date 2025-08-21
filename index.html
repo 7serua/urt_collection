@@ -26,13 +26,15 @@ h1 {
   gap:10px;
 }
 
+/* 検索バー */
 #searchInput {
   padding:5px;
-  width:250px;
+  width:200px; /* 少し短く */
   border:1px solid #ccc;
   border-radius:4px;
 }
 
+/* ボタン共通 */
 #clearSearch, #dateToggle {
   padding:5px 10px;
   border:none;
@@ -47,7 +49,7 @@ h1 {
 
 table {
   border-collapse: collapse;
-  width: 100%;
+  width: 90%; /* 少し狭くして中央寄せ */
   table-layout: fixed;
   background-color: #fff;
   margin:0 auto;
@@ -55,10 +57,11 @@ table {
 
 th, td {
   border: 1px solid #ccc;
-  padding: 6px 10px;
+  padding: 4px 6px; /* 少し小さくしてスリム化 */
   text-align: left;
   word-break: break-word;
   white-space: nowrap;
+  font-size: 14px;
 }
 
 th { background-color: #f4f4f4; }
@@ -85,7 +88,7 @@ button:hover { background-color: #2e8b57; }
 
 /* モーダル */
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);}
-#modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
+#modalContent { background:#fff; margin:10% auto; padding:15px; width:70%; max-width:450px; border-radius:8px; position: relative; font-size:14px;}
 #modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:28px; }
 
 td.youtube a, td.nico a { display:inline-block; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -99,6 +102,10 @@ td.youtube a, td.nico a { display:inline-block; max-width:150px; overflow:hidden
 <div id="controls">
   <input id="searchInput" placeholder="検索...">
   <button id="clearSearch">検索解除</button>
+</div>
+
+<!-- 日付順切替ボタンを投稿日のセルの真上に配置 -->
+<div style="width:90%; margin:0 auto 5px auto; text-align:left;">
   <button id="dateToggle">日付順切替</button>
 </div>
 
@@ -133,9 +140,7 @@ fetch('data.json')
   function renderTable(sortedData){
     tbody.innerHTML = '';
     sortedData.forEach((item,index)=>{
-      // ニコニコ動画リンク作成
       let nicoLink = item["ニコニコ"]!=="－" ? `<a class="nico" href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>` : "－";
-      // YouTubeリンク
       let ytLink = item["YouTube"]!=="－" ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>` : "－";
 
       const tr = document.createElement('tr');
@@ -151,12 +156,10 @@ fetch('data.json')
     });
   }
 
-  // 初回表示
   renderTable(data);
 
   window.showDetails = function(index){
     const item = data[index];
-    // 本家様リンク条件
     let honkeLink = (item["本家様"] && item["本家様"] !== "オリジナル曲" && item["本家様"] !== "？") ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>` : item["本家様"];
     document.getElementById('modalDetails').innerHTML = `
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
@@ -169,7 +172,6 @@ fetch('data.json')
     document.getElementById('modal').style.display='block';
   }
 
-  // モーダル閉じる
   document.getElementById('modalClose').onclick = function(){
     document.getElementById('modal').style.display='none';
   }
@@ -177,7 +179,6 @@ fetch('data.json')
     if(event.target === document.getElementById('modal')) document.getElementById('modal').style.display='none';
   }
 
-  // 検索処理
   function searchTable(){
     const filter = document.getElementById('searchInput').value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row=>{
@@ -192,7 +193,6 @@ fetch('data.json')
     searchTable();
   });
 
-  // 日付順切替
   document.getElementById('dateToggle').addEventListener('click', function(){
     ascending = !ascending;
     let sorted = data.slice().sort((a,b)=>{
