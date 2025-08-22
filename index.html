@@ -9,7 +9,6 @@ body {
   padding: 20px;
   color: #000;
   margin:0;
-  /* 背景グラデーション 繰り返さない */
   background: linear-gradient(to bottom, #7ee0a5 0%, #38b48b 30%, #55c69b 60%, #ccffe5 100%);
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -20,7 +19,7 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
 #searchContainer {
   display: flex;
   gap: 5px;
-  justify-content: center; /* 中央寄せ */
+  justify-content: center;
   align-items: center;
   margin-bottom: 10px;
 }
@@ -46,7 +45,7 @@ table {
   width: 80%;
   margin: 0 auto;
   table-layout: auto;
-  background-color: #fff; /* 表の背景を白に固定 */
+  background-color: #fff;
 }
 
 th, td {
@@ -56,23 +55,10 @@ th, td {
   vertical-align: middle; 
 }
 
-th { 
-  background-color: #99ffcc; /* ヘッダーの色を変更 */
-}
+th { background-color: #9cc458; }
 
-tr {
-  background-color: #fff; /* 普段の行も白 */
-  cursor: pointer;
-}
-
-tr:hover {
-  background-color: #c3fade; /* カーソルを置いた時の色 */
-}
-
-tr.selected {
-  background-color: #c3fade; /* クリックして選択中の色 */
-}
-
+tr:hover { background-color: #c3fade; }
+tr.selected { background-color: #c3fade; }
 
 td.song { width:35%; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
 td.date { text-align:center; padding-left:10px; padding-right:10px; white-space:nowrap; }
@@ -95,12 +81,11 @@ button:hover { background-color:#2e8b57; }
 #modalContent { background:#fff; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:8px; position: relative; }
 #modalClose { position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:32px; }
 
-/* 日付順切り替え矢印 */
 #sortButton {
   margin-left: 5px;
   cursor: pointer;
-  color: #fff; /* ボタン文字色 */
-  background-color: #38b48b; /* ボタン背景色 */
+  color: #fff;
+  background-color: #38b48b;
   padding: 4px 8px;
   border-radius: 4px;
   display: inline-block;
@@ -124,10 +109,17 @@ td.detail {
 
 <h1>動画リスト</h1>
 
-<!-- 検索バーとクリアボタンはここ -->
+<!-- 検索バー -->
 <div id="searchContainer">
   <input id="searchInput" placeholder="検索...">
   <button id="clearButton">クリア</button>
+</div>
+
+<!-- 削除済み表示チェック -->
+<div id="showDeletedContainer" style="text-align:center; margin-bottom:10px;">
+  <label>
+    <input type="checkbox" id="showDeleted"> 削除済みの動画も表示する
+  </label>
 </div>
 
 <table id="videoTable">
@@ -159,10 +151,14 @@ fetch('data.json')
   let asc = true;
 
   function renderTable(sortedData){
+    const showDeleted = document.getElementById('showDeleted').checked;
     tbody.innerHTML = '';
     sortedData.forEach((item,index)=>{
+      if(item["今見れる？"] === "不可" && !showDeleted) return;
+
       let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－";
       let ytLink = (item["YouTube"] && item["YouTube"]!=="－") ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="date">${item["投稿日"]}</td>
@@ -172,16 +168,11 @@ fetch('data.json')
         <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
         <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]}</td>
       `;
-      // クリック時の選択色処理
-      tr.addEventListener('click', ()=>{
-        tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('selected'));
-        tr.classList.add('selected');
-      });
       tbody.appendChild(tr);
     });
   }
 
-window.showDetails = function(index){
+  window.showDetails = function(index){
     const item = data[index];
     const mainLink = item["本家様"] &&
                      item["本家様"] !== "オリジナル曲" &&
@@ -201,7 +192,7 @@ window.showDetails = function(index){
       <p><strong>備考:</strong> ${item["備考"]}</p>
     `;
     document.getElementById('modal').style.display='block';
-}
+  }
 
   window.onclick = function(event){
     const modal = document.getElementById('modal');
@@ -215,8 +206,7 @@ window.showDetails = function(index){
     document.querySelectorAll('#videoTable tbody tr').forEach(row => {
       const text = row.textContent.toLowerCase();
       const searchCell = row.querySelector('td:last-child').textContent;
-      const singer = searchCell;
-      const isCollab = singer.includes('・');
+      const isCollab = searchCell.includes('・');
       let combinedText = text + (isCollab ? ' コラボ' : '');
       const isOriginal = searchCell.includes('オリジナル曲');
       const isKaeshi = searchCell.includes('替え歌');
@@ -234,6 +224,13 @@ window.showDetails = function(index){
 
   document.getElementById('sortButton').addEventListener('click',()=>{
     asc = !asc;
+    const sorted = data.slice().sort((a,b)=>{
+      return asc ? new Date(a["投稿日"]) - new Date(b["投稿日"]) : new Date(b["投稿日"]) - new Date(a["投稿日"]);
+    });
+    renderTable(sorted);
+  });
+
+  document.getElementById('showDeleted').addEventListener('change', () => {
     const sorted = data.slice().sort((a,b)=>{
       return asc ? new Date(a["投稿日"]) - new Date(b["投稿日"]) : new Date(b["投稿日"]) - new Date(a["投稿日"]);
     });
