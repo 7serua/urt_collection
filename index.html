@@ -109,16 +109,19 @@ td.nico, td.youtube, td.detail { text-align: center; }
 
 <h1>動画リスト</h1>
 
+<!-- 検索バーとクリアボタン -->
 <div id="searchContainer">
   <input id="searchInput" placeholder="検索...">
   <button id="clearButton">クリア</button>
 </div>
 
-<div id="showDeletedContainer">
+<!-- 削除済みの動画を表示するチェックボックス -->
+<div id="showDeletedContainer" style="text-align:center; margin-bottom:10px;">
   <label>
     <input type="checkbox" id="showDeleted"> 削除済みの動画も表示する
   </label>
 </div>
+
 
 <table id="videoTable">
   <thead>
@@ -148,26 +151,29 @@ fetch('data.json')
   const tbody = document.querySelector('#videoTable tbody');
   let asc = true;
 
-  function renderTable(sortedData, showDeleted = false){
-    tbody.innerHTML = '';
-    sortedData.forEach((item,index)=>{
-      if(item["今見れる？"] === "不可" && !showDeleted) return;
+  function renderTable(sortedData){
+  const showDeleted = document.getElementById('showDeleted').checked;
+  tbody.innerHTML = '';
+  sortedData.forEach((item,index)=>{
+    // 「今見れる？」が不可なら、チェックボックス未チェックならスキップ
+    if(item["今見れる？"] === "不可" && !showDeleted) return;
 
-      let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－";
-      let ytLink = (item["YouTube"] && item["YouTube"]!=="－") ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
+    let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－";
+    let ytLink = (item["YouTube"] && item["YouTube"]!=="－") ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="date">${item["投稿日"]}</td>
-        <td class="song">${item["曲名"]}</td>
-        <td class="nico">${nicoLink}</td>
-        <td class="youtube">${ytLink}</td>
-        <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
-        <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]} ${item["カテゴリ"]}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="date">${item["投稿日"]}</td>
+      <td class="song">${item["曲名"]}</td>
+      <td class="nico">${nicoLink}</td>
+      <td class="youtube">${ytLink}</td>
+      <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
+      <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 
   window.showDetails = function(index){
     const item = data[index];
