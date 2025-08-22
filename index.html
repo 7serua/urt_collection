@@ -20,7 +20,7 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
   align-items: center;
   margin-bottom: 10px;
 }
-#searchInput, #descriptionInput {
+#searchInput {
   padding:5px;
   width:200px;
   border:1px solid #ccc;
@@ -101,14 +101,13 @@ td.nico, td.youtube, td.detail { text-align: center; }
 
 <h1>動画リスト</h1>
 
-<!-- 検索バーとクリアボタン -->
+<!-- 曲名・歌唱者・本家制作検索バーとクリアボタン -->
 <div id="searchContainer">
   <input id="searchInput" placeholder="曲名・歌唱者・本家制作検索...">
-  <input id="descriptionInput" placeholder="概要欄検索...">
   <button id="clearButton">クリア</button>
 </div>
 
-<!-- 削除済みの動画を表示するチェックボックス -->
+<!-- 削除済みの動画を表示するチェックボックス（パスワード制御付き） -->
 <div id="showDeletedContainer">
   <label>
     <input type="checkbox" id="showDeleted"> 削除済みの動画も表示する
@@ -137,6 +136,8 @@ td.nico, td.youtube, td.detail { text-align: center; }
 </div>
 
 <script>
+const PASSWORD = "sm28789389";
+
 fetch('data.json')
 .then(res => res.json())
 .then(data => {
@@ -200,7 +201,6 @@ fetch('data.json')
 
   function filterTable(){
     const filter = normalize(document.getElementById('searchInput').value);
-    const descFilter = normalize(document.getElementById('descriptionInput').value);
     const showDeleted = document.getElementById('showDeleted').checked;
 
     document.querySelectorAll('#videoTable tbody tr').forEach(row => {
@@ -208,22 +208,34 @@ fetch('data.json')
       const title = normalize(tds[1].textContent);
       const singer = normalize(tds[5].textContent);
       const creator = normalize(tds[5].textContent);
-      const description = normalize(tds[5].textContent);
-
-      const matchesMain = title.includes(filter) || singer.includes(filter) || creator.includes(filter);
-      const matchesDesc = description.includes(descFilter);
       const isDeleted = tds[5].textContent.includes("不可");
 
-      row.style.display = (matchesMain && matchesDesc && (!isDeleted || showDeleted)) ? '' : 'none';
+      const matchesMain = title.includes(filter) || singer.includes(filter) || creator.includes(filter);
+
+      row.style.display = (matchesMain && (!isDeleted || showDeleted)) ? '' : 'none';
     });
   }
 
   document.getElementById('searchInput').addEventListener('input', filterTable);
-  document.getElementById('descriptionInput').addEventListener('input', filterTable);
-  document.getElementById('showDeleted').addEventListener('change', ()=>{renderTable(data); filterTable();});
+  
+  // パスワード付きチェックボックス
+  const showDeletedCheckbox = document.getElementById('showDeleted');
+  showDeletedCheckbox.addEventListener('click', function(e){
+    if(!showDeletedCheckbox.checked){
+      // チェック解除は自由
+      return;
+    }
+    const pwd = prompt("削除済み動画を表示するにはパスワードを入力してください","");
+    if(pwd !== PASSWORD){
+      alert("パスワードが違います");
+      e.preventDefault();
+      showDeletedCheckbox.checked = false;
+      return false;
+    }
+  });
+
   document.getElementById('clearButton').addEventListener('click', () => {
     document.getElementById('searchInput').value = '';
-    document.getElementById('descriptionInput').value = '';
     filterTable();
   });
 
