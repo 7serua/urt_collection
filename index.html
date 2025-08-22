@@ -223,21 +223,21 @@ fetch('data.json')
 // パスワード付きチェックボックス
 const showDeletedCheckbox = document.getElementById('showDeleted');
 showDeletedCheckbox.addEventListener('click', function(e){
-  if(!showDeletedCheckbox.checked){
-    // チェック解除は自由
-    return;
+  if(showDeletedCheckbox.checked){
+    // チェックが入った場合はパスワード確認
+    const pwd = prompt("削除済み動画を表示するにはパスワードを入力してください","");
+    if(pwd !== PASSWORD){
+      alert("パスワードが違います");
+      e.preventDefault();
+      showDeletedCheckbox.checked = false;
+      return false;
+    }
   }
-  const pwd = prompt("削除済み動画を表示するにはパスワードを入力してください","");
-  if(pwd !== PASSWORD){
-    alert("パスワードが違います");
-    e.preventDefault();
-    showDeletedCheckbox.checked = false;
-    return false;
-  }
-  // ✅ パスワード正しい場合に描画する
+  // チェックの有無にかかわらずテーブルを再描画
   renderTable(data);
   filterTable();
 });
+
 
 
   document.getElementById('clearButton').addEventListener('click', () => {
