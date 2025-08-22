@@ -55,7 +55,7 @@ th, td {
   vertical-align: middle; 
 }
 
-th { background-color: #9cc458; }
+th { background-color: #99ffcc; }
 
 tr:hover { background-color: #c3fade; }
 tr.selected { background-color: #c3fade; }
@@ -151,14 +151,10 @@ fetch('data.json')
   let asc = true;
 
   function renderTable(sortedData){
-    const showDeleted = document.getElementById('showDeleted').checked;
     tbody.innerHTML = '';
     sortedData.forEach((item,index)=>{
-      if(item["今見れる？"] === "不可" && !showDeleted) return;
-
       let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－";
       let ytLink = (item["YouTube"] && item["YouTube"]!=="－") ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
-
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="date">${item["投稿日"]}</td>
@@ -166,7 +162,7 @@ fetch('data.json')
         <td class="nico">${nicoLink}</td>
         <td class="youtube">${ytLink}</td>
         <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
-        <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]}</td>
+        <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]} ${item["カテゴリ"]}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -199,21 +195,26 @@ fetch('data.json')
     if(event.target === modal){ modal.style.display='none'; }
   }
 
-  renderTable(data);
+  // 最初に「今見れる？」が不可のものを除外
+  let filteredData = data.filter(item => item["今見れる？"] !== "不可");
+  renderTable(filteredData);
+
+  // ひらがな・カタカナ変換関数
+  function hiraToKana(str){
+    return str.replace(/[ぁ-ん]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+  }
 
   document.getElementById('searchInput').addEventListener('input', function() {
     const filter = this.value.toLowerCase();
+    const filterKana = hiraToKana(filter);
+
     document.querySelectorAll('#videoTable tbody tr').forEach(row => {
-      const text = row.textContent.toLowerCase();
-      const searchCell = row.querySelector('td:last-child').textContent;
-      const isCollab = searchCell.includes('・');
-      let combinedText = text + (isCollab ? ' コラボ' : '');
-      const isOriginal = searchCell.includes('オリジナル曲');
-      const isKaeshi = searchCell.includes('替え歌');
-      const isMimic = searchCell.includes('声真似');
-      const isCover = !isOriginal && !isKaeshi && !isMimic;
-      combinedText += isCover ? ' カバー曲' : '';
-      row.style.display = combinedText.includes(filter) ? '' : 'none';
+      const searchCell = row.querySelector('td:last-child').textContent.toLowerCase();
+      const searchCellKana = hiraToKana(searchCell);
+
+      // 「オリジナル曲」検索時にカタカナ表記も出るように
+      const matches = searchCell.includes(filter) || searchCellKana.includes(filterKana);
+      row.style.display = matches ? '' : 'none';
     });
   });
 
@@ -224,20 +225,13 @@ fetch('data.json')
 
   document.getElementById('sortButton').addEventListener('click',()=>{
     asc = !asc;
-    const sorted = data.slice().sort((a,b)=>{
+    const sorted = filteredData.slice().sort((a,b)=>{
       return asc ? new Date(a["投稿日"]) - new Date(b["投稿日"]) : new Date(b["投稿日"]) - new Date(a["投稿日"]);
     });
     renderTable(sorted);
   });
-
-  document.getElementById('showDeleted').addEventListener('change', () => {
-    const sorted = data.slice().sort((a,b)=>{
-      return asc ? new Date(a["投稿日"]) - new Date(b["投稿日"]) : new Date(b["投稿日"]) - new Date(a["投稿日"]);
-    });
-    renderTable(sorted);
-  });
-
 });
 </script>
+
 </body>
 </html>
