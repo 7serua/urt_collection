@@ -136,7 +136,9 @@ td.nico, td.youtube, td.detail { text-align: center; }
 </div>
 
 <script>
-const PASSWORD = "sm28789389";
+const PASSWORD = "sm28789389"; // パスワード
+const showDeletedCheckbox = document.getElementById('showDeleted');
+
 
 fetch('data.json')
 .then(res => res.json())
@@ -218,21 +220,25 @@ fetch('data.json')
 
   document.getElementById('searchInput').addEventListener('input', filterTable);
   
-  // パスワード付きチェックボックス
-  const showDeletedCheckbox = document.getElementById('showDeleted');
-  showDeletedCheckbox.addEventListener('click', function(e){
-    if(!showDeletedCheckbox.checked){
-      // チェック解除は自由
-      return;
-    }
-    const pwd = prompt("削除済み動画を表示するにはパスワードを入力してください","");
-    if(pwd !== PASSWORD){
-      alert("パスワードが違います");
-      e.preventDefault();
-      showDeletedCheckbox.checked = false;
-      return false;
-    }
-  });
+// パスワード付きチェックボックス
+const showDeletedCheckbox = document.getElementById('showDeleted');
+showDeletedCheckbox.addEventListener('click', function(e){
+  if(!showDeletedCheckbox.checked){
+    // チェック解除は自由
+    return;
+  }
+  const pwd = prompt("削除済み動画を表示するにはパスワードを入力してください","");
+  if(pwd !== PASSWORD){
+    alert("パスワードが違います");
+    e.preventDefault();
+    showDeletedCheckbox.checked = false;
+    return false;
+  }
+  // ✅ パスワード正しい場合に描画する
+  renderTable(data);
+  filterTable();
+});
+
 
   document.getElementById('clearButton').addEventListener('click', () => {
     document.getElementById('searchInput').value = '';
