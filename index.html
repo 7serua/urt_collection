@@ -41,6 +41,12 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
 }
 #clearButton:hover { background-color:#2e8b57; }
 
+<div id="showDeletedContainer" style="text-align:center; margin-bottom:10px;">
+  <label>
+    <input type="checkbox" id="showDeleted"> 削除済みの動画も表示する
+  </label>
+</div>
+
 table {
   border-collapse: collapse;
   width: 80%;
@@ -56,9 +62,9 @@ th, td {
   vertical-align: middle; 
 }
 
-th { background-color: #f4f4f4; }
+th { background-color: #c3fade; }
 
-tr:hover { background-color: #b3e5fc; }
+tr:hover { background-color: #c3fade; }
 
 td.song { width:35%; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
 td.date { text-align:center; padding-left:10px; padding-right:10px; white-space:nowrap; }
