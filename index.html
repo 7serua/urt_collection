@@ -152,28 +152,31 @@ fetch('data.json')
   let asc = true;
 
   function renderTable(sortedData){
-  const showDeleted = document.getElementById('showDeleted').checked;
-  tbody.innerHTML = '';
-  sortedData.forEach((item,index)=>{
-    // 「今見れる？」が不可なら、チェックボックス未チェックならスキップ
-    
+    tbody.innerHTML = '';
+    sortedData.forEach((item,index)=>{
+      // 今見れる？が「不可」なら削除扱い
+      const isDeleted = item["今見れる？"] === "不可";
+      if(isDeleted && !document.getElementById('showDeleted').checked) return;
 
-    let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－";
-    let ytLink = (item["YouTube"] && item["YouTube"]!=="－") ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
+      let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") 
+        ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>` : "－";
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="date">${item["投稿日"]}</td>
-      <td class="song">${item["曲名"]}</td>
-      <td class="nico">${nicoLink}</td>
-      <td class="youtube">${ytLink}</td>
-      <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
-      <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+      // YouTubeリンク修正（必ず https:// で始める）
+      let ytLink = (item["YouTube"] && item["YouTube"]!=="－") 
+        ? `<a href="${item["YouTube"].startsWith('http') ? item["YouTube"] : 'https://' + item["YouTube"]}" target="_blank">▶YouTube</a>` : "－";
 
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="date">${item["投稿日"]}</td>
+        <td class="song">${item["曲名"]}</td>
+        <td class="nico">${nicoLink}</td>
+        <td class="youtube">${ytLink}</td>
+        <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
+        <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
   window.showDetails = function(index){
     const item = data[index];
@@ -182,6 +185,8 @@ fetch('data.json')
                      ? `<a href="https://${item["本家様"]}" target="_blank">${item["本家様"]}</a>`
                      : item["本家様"];
     document.getElementById('modalDetails').innerHTML = `
+      <p><strong>投稿日:</strong> ${item["投稿日"]}</p>
+      <p><strong>曲名:</strong> ${item["曲名"]}</p>
       <p><strong>歌唱者:</strong> ${item["出演者"]}</p>
       <p><strong>イラスト:</strong> ${item["イラスト"]}</p>
       <p><strong>創造神:</strong> ${item["本家制作"]}</p>
@@ -210,7 +215,11 @@ fetch('data.json')
       const searchCell = row.querySelector('td:last-child').textContent.toLowerCase();
       const searchCellKana = hiraToKana(searchCell);
 
-      const matches = searchCell.includes(filter) || searchCellKana.includes(filterKana);
+      // 出演者に「・」があれば「コラボ」を追加
+      let combined = searchCell + (searchCell.includes("・") ? " コラボ" : "");
+      let combinedKana = searchCellKana + (searchCell.includes("・") ? " コラボ" : "");
+
+      const matches = combined.includes(filter) || combinedKana.includes(filterKana);
       const isDeleted = searchCell.includes("不可");
 
       row.style.display = (matches && (!isDeleted || showDeleted)) ? '' : 'none';
@@ -218,7 +227,7 @@ fetch('data.json')
   }
 
   document.getElementById('searchInput').addEventListener('input', filterTable);
-  document.getElementById('showDeleted').addEventListener('change', filterTable);
+  document.getElementById('showDeleted').addEventListener('change', ()=>{renderTable(data); filterTable();});
   document.getElementById('clearButton').addEventListener('click', () => {
     document.getElementById('searchInput').value = '';
     filterTable();
@@ -229,7 +238,7 @@ fetch('data.json')
     const sorted = data.slice().sort((a,b)=>{
       return asc ? new Date(a["投稿日"]) - new Date(b["投稿日"]) : new Date(b["投稿日"]) - new Date(a["投稿日"]);
     });
-    renderTable(sorted, document.getElementById('showDeleted').checked);
+    renderTable(sorted);
     filterTable();
   });
 
