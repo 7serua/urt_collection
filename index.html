@@ -206,7 +206,7 @@ fetch('data.json')
     return str.replace(/[ぁ-ん]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
   }
 
-  function filterTable(){
+    function filterTable(){
     const filter = document.getElementById('searchInput').value.toLowerCase();
     const filterKana = hiraToKana(filter);
     const showDeleted = document.getElementById('showDeleted').checked;
@@ -219,12 +219,27 @@ fetch('data.json')
       let combined = searchCell + (searchCell.includes("・") ? " コラボ" : "");
       let combinedKana = searchCellKana + (searchCell.includes("・") ? " コラボ" : "");
 
+      // ---- ここから分類ロジック ----
+      if (searchCell.includes("オリジナル曲") || searchCell.includes("自作")) {
+        // オリジナル曲扱い → 何も追加しない（既に検索可能）
+      } else if (searchCell.includes("声真似")) {
+        // 声真似扱い → 何も追加しない（既に検索可能）
+      } else if (searchCell.includes("替え歌")) {
+        // 替え歌扱い → 何も追加しない（既に検索可能）
+      } else {
+        // それ以外（未投稿・恐らく未投稿・不明など） → カバー曲
+        combined += " カバー曲 かばー曲";
+        combinedKana += " カバー曲 かばー曲";
+      }
+      // ---- 分類ここまで ----
+
       const matches = combined.includes(filter) || combinedKana.includes(filterKana);
       const isDeleted = searchCell.includes("不可");
 
       row.style.display = (matches && (!isDeleted || showDeleted)) ? '' : 'none';
     });
   }
+
 
   document.getElementById('searchInput').addEventListener('input', filterTable);
   document.getElementById('showDeleted').addEventListener('change', ()=>{renderTable(data); filterTable();});
