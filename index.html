@@ -156,7 +156,7 @@ fetch('data.json')
   tbody.innerHTML = '';
   sortedData.forEach((item,index)=>{
     // 「今見れる？」が不可なら、チェックボックス未チェックならスキップ
-    if(item["今見れる？"] === "不可" && !showDeleted) return;
+    
 
     let nicoLink = (item["ニコニコ"] && item["ニコニコ"]!=="－") ? `<a href="https://${item["ニコニコ"]}" target="_blank">▶ニコニコ動画</a>`:"－";
     let ytLink = (item["YouTube"] && item["YouTube"]!=="－") ? `<a href="${item["YouTube"]}" target="_blank">▶YouTube</a>`:"－";
