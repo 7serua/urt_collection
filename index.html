@@ -41,18 +41,12 @@ h1 { text-align:center; color:#fff; margin-bottom:20px; }
 }
 #clearButton:hover { background-color:#2e8b57; }
 
-<div id="showDeletedContainer" style="text-align:center; margin-bottom:10px;">
-  <label>
-    <input type="checkbox" id="showDeleted"> 削除済みの動画も表示する
-  </label>
-</div>
-
 table {
   border-collapse: collapse;
   width: 80%;
   margin: 0 auto;
   table-layout: auto;
-  background-color: #fff;
+  background-color: #fff; /* 表の背景を白に固定 */
 }
 
 th, td {
@@ -62,9 +56,20 @@ th, td {
   vertical-align: middle; 
 }
 
-th { background-color: #c3fade; }
+th { background-color: #fff; }
 
-tr:hover { background-color: #１fff; }
+tr {
+  background-color: #fff; /* 普段の行も白 */
+  cursor: pointer;
+}
+
+tr:hover {
+  background-color: #c3fade; /* カーソルを置いた時の色 */
+}
+
+tr.selected {
+  background-color: #c3fade; /* クリックして選択中の色 */
+}
 
 td.song { width:35%; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
 td.date { text-align:center; padding-left:10px; padding-right:10px; white-space:nowrap; }
@@ -91,6 +96,11 @@ button:hover { background-color:#2e8b57; }
 #sortButton {
   margin-left: 5px;
   cursor: pointer;
+  color: #fff; /* ボタン文字色 */
+  background-color: #38b48b; /* ボタン背景色 */
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 /* レスポンシブ */
@@ -99,29 +109,12 @@ button:hover { background-color:#2e8b57; }
   table, th, td { font-size:14px; }
 }
 
-
-
-
 td.nico,
 td.youtube,
 td.detail {
   text-align: center;
 }
 
-/* 投稿日の矢印をボタン色にする */
-#sortButton {
-  color: #fff; /* ボタンの文字色に合わせる */
-  background-color: #38b48b; /* ボタン背景色に合わせる */
-  padding: 4px 8px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-tr.selected {
-  background-color: #c3fade;
-}
-
-  
 </style>
 </head>
 <body>
@@ -176,13 +169,17 @@ fetch('data.json')
         <td class="detail"><button onclick="showDetails(${index})">詳細</button></td>
         <td style="display:none;">${item["出演者"]} ${item["本家様"]} ${item["本家制作"]} ${item["今見れる？"]} ${item["備考"]}</td>
       `;
+      // クリック時の選択色処理
+      tr.addEventListener('click', ()=>{
+        tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('selected'));
+        tr.classList.add('selected');
+      });
       tbody.appendChild(tr);
     });
   }
 
 window.showDetails = function(index){
     const item = data[index];
-    // 本家様がリンク化しない条件を追加
     const mainLink = item["本家様"] &&
                      item["本家様"] !== "オリジナル曲" &&
                      item["本家様"] !== "？" &&
@@ -214,27 +211,19 @@ window.showDetails = function(index){
     const filter = this.value.toLowerCase();
     document.querySelectorAll('#videoTable tbody tr').forEach(row => {
       const text = row.textContent.toLowerCase();
-
-      // 非表示の検索用セルを取得
       const searchCell = row.querySelector('td:last-child').textContent;
       const singer = searchCell;
-
-      // 「・」があれば「コラボ」を追加
       const isCollab = singer.includes('・');
       let combinedText = text + (isCollab ? ' コラボ' : '');
-
-      // カテゴリ判定：オリジナル曲・替え歌・声真似以外はカバー曲
       const isOriginal = searchCell.includes('オリジナル曲');
       const isKaeshi = searchCell.includes('替え歌');
       const isMimic = searchCell.includes('声真似');
       const isCover = !isOriginal && !isKaeshi && !isMimic;
       combinedText += isCover ? ' カバー曲' : '';
-
       row.style.display = combinedText.includes(filter) ? '' : 'none';
     });
   });
 
-  // 検索解除ボタンの動作
   document.getElementById('clearButton').addEventListener('click', () => {
     document.getElementById('searchInput').value = '';
     document.getElementById('searchInput').dispatchEvent(new Event('input'));
